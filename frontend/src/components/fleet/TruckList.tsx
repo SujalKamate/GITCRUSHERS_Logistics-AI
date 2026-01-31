@@ -2,6 +2,8 @@
  * Truck list component with filtering and actions.
  */
 
+'use client';
+
 import React, { useState, useMemo } from 'react';
 import { Search, MapPin, Fuel, Package, Clock } from 'lucide-react';
 import { Truck, TruckStatus } from '@/types';

@@ -2,6 +2,8 @@
  * Main dashboard layout component with header, sidebar, and content area.
  */
 
+'use client';
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { DashboardLayoutProps } from '@/types';
@@ -33,6 +35,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <Sidebar 
             collapsed={collapsed} 
             onToggle={handleToggle}
+            items={[]} // Empty items for now, will be populated by the Sidebar component itself
           />
         )}
 

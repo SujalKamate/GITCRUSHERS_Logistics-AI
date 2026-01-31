@@ -23,7 +23,11 @@ interface CardContentProps extends BaseComponentProps {}
 
 interface CardFooterProps extends BaseComponentProps {}
 
-const Card: React.FC<CardProps> = ({ 
+const Card: React.FC<CardProps> & {
+  Header: React.FC<CardHeaderProps>;
+  Content: React.FC<CardContentProps>;
+  Footer: React.FC<CardFooterProps>;
+} = ({ 
   className, 
   children, 
   padding = 'md',

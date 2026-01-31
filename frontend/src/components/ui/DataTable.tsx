@@ -2,6 +2,8 @@
  * Data table component with sorting, filtering, and pagination.
  */
 
+'use client';
+
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronUp, ChevronDown, Search } from 'lucide-react';

@@ -2,6 +2,8 @@
  * Sidebar navigation component.
  */
 
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -67,9 +69,13 @@ const navigationItems: SidebarItem[] = [
 const Sidebar: React.FC<SidebarProps> = ({ 
   collapsed = false, 
   onToggle, 
+  items: propItems,
   className 
 }) => {
   const pathname = usePathname();
+
+  // Use provided items or default navigation items
+  const items = propItems || navigationItems;
 
   return (
     <div className={cn(
@@ -95,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
-        {navigationItems.map((item) => {
+        {items.map((item: SidebarItem) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
 

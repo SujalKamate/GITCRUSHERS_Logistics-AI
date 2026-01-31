@@ -29,7 +29,12 @@ interface CycleVisualizationProps {
   className?: string;
 }
 
-const phaseConfig = {
+const phaseConfig: Record<ControlLoopPhase, {
+  icon: React.ComponentType<any>;
+  color: ColorKey;
+  description: string;
+  duration: number;
+}> = {
   [ControlLoopPhase.OBSERVE]: {
     icon: Eye,
     color: 'blue',
@@ -68,7 +73,14 @@ const phaseConfig = {
   },
 };
 
-const colorClasses = {
+type ColorKey = 'blue' | 'purple' | 'yellow' | 'green' | 'red' | 'gray';
+
+const colorClasses: Record<ColorKey, {
+  bg: string;
+  text: string;
+  border: string;
+  ring: string;
+}> = {
   blue: {
     bg: 'bg-blue-100',
     text: 'text-blue-600',

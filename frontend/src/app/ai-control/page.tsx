@@ -221,7 +221,7 @@ const AIControlPage: React.FC = () => {
                         className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                       />
                       <span className="ml-2 text-sm text-gray-600">
-                        Automatically execute decisions with confidence > 90%
+                        Automatically execute decisions with confidence &gt; 90%
                       </span>
                     </div>
                   </div>

@@ -136,7 +136,7 @@ export interface DashboardLayoutProps extends BaseComponentProps {
 export interface SidebarProps extends BaseComponentProps {
   collapsed?: boolean;
   onToggle?: () => void;
-  items: SidebarItem[];
+  items?: SidebarItem[];
 }
 
 export interface SidebarItem {

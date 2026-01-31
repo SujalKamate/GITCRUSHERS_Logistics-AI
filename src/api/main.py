@@ -11,11 +11,32 @@ from src.api.routes import fleet_router, control_loop_router, decisions_router
 from src.api.services.simulation import simulation_service
 from src.api.services.state_manager import state_manager
 
+# Optional database service
+try:
+    from src.api.services.database_service import DatabaseService
+    from database_setup import get_database_service
+    DATABASE_AVAILABLE = True
+except ImportError:
+    DATABASE_AVAILABLE = False
+    print("Database service not available - using in-memory storage")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup/shutdown events."""
-    # Startup: Initialize simulation data
+    # Startup: Initialize database and simulation data
+    if DATABASE_AVAILABLE:
+        print("Initializing database...")
+        try:
+            from database_setup import init_database
+            await init_database()
+            print("Database initialized successfully")
+        except Exception as e:
+            print(f"Database initialization failed: {e}")
+            print("Falling back to in-memory storage")
+    else:
+        print("Using in-memory storage (database not available)")
+    
     print("Initializing simulation data...")
     simulation_service.generate_initial_data(num_trucks=10)
     print(f"Generated {len(state_manager.trucks)} trucks, {len(state_manager.loads)} loads")

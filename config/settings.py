@@ -16,15 +16,15 @@ class Settings(BaseSettings):
     DATA_DIR: Path = PROJECT_ROOT / "data"
     CONFIG_DIR: Path = PROJECT_ROOT / "config"
 
-    # Grok/xAI API Configuration
-    XAI_API_KEY: str = Field(default="", description="xAI API key for Grok")
-    XAI_BASE_URL: str = Field(
-        default="https://api.x.ai/v1",
-        description="xAI API base URL"
+    # Groq API Configuration
+    GROQ_API_KEY: str = Field(default="", description="Groq API key")
+    GROQ_BASE_URL: str = Field(
+        default="https://api.groq.com/openai/v1",
+        description="Groq API base URL"
     )
-    GROK_MODEL: str = Field(
-        default="grok-beta",
-        description="Grok model to use"
+    GROQ_MODEL: str = Field(
+        default="llama-3.1-8b-instant",
+        description="Groq model to use"
     )
 
     # LLM Settings

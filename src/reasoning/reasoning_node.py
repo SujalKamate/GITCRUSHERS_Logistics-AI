@@ -15,25 +15,25 @@ import structlog
 from src.models import (
     AgentState, ControlLoopPhase, Issue, ReasoningResult
 )
-from src.reasoning.grok_client import GrokClient, get_grok_client
+from src.reasoning.grok_client import GroqClient, get_groq_client
 from src.reasoning.prompts import PromptTemplates
 
 logger = structlog.get_logger(__name__)
 
 
 def create_reasoning_node(
-    grok_client: GrokClient = None,
+    groq_client: GroqClient = None,
 ) -> Callable[[AgentState], AgentState]:
     """
     Create a reasoning node for the LangGraph control loop.
 
     Args:
-        grok_client: Optional Grok client (uses default if not provided)
+        groq_client: Optional Groq client (uses default if not provided)
 
     Returns:
         A function that can be used as a LangGraph node
     """
-    _client = grok_client or get_grok_client()
+    _client = groq_client or get_groq_client()
 
     def reasoning_node(state: AgentState) -> AgentState:
         """
@@ -135,7 +135,7 @@ def create_reasoning_node(
 
 
 def _analyze_situation(
-    client: GrokClient,
+    client: GroqClient,
     trucks: list[dict],
     traffic: list[dict],
     loads: list[dict],
@@ -187,7 +187,7 @@ def _analyze_situation(
 
 
 def _analyze_truck(
-    client: GrokClient,
+    client: GroqClient,
     truck: dict,
     loads: list[dict],
     traffic: list[dict],
@@ -239,7 +239,7 @@ def _analyze_truck(
 
 
 def _prioritize_issues(
-    client: GrokClient,
+    client: GroqClient,
     issues: list[Issue],
     trucks: list[dict],
     loads: list[dict],

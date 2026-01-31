@@ -72,13 +72,23 @@ const AIControlPage: React.FC = () => {
   useEffect(() => {
     let ws: WebSocket | null = null;
     let reconnectTimeout: NodeJS.Timeout;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
 
     const connect = () => {
+      // Don't try to reconnect if we've exceeded max attempts
+      if (reconnectAttempts >= maxReconnectAttempts) {
+        console.log('Max WebSocket reconnection attempts reached. Falling back to polling.');
+        return;
+      }
+
       try {
+        console.log(`Attempting WebSocket connection (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`);
         ws = new WebSocket(`${WS_BASE_URL}/ws`);
 
         ws.onopen = () => {
           console.log('AI Control WebSocket connected');
+          reconnectAttempts = 0; // Reset attempts on successful connection
           ws?.send(JSON.stringify({
             type: 'subscribe',
             events: ['control_loop_update', 'control_loop_phase_change', 'decision_pending']
@@ -100,21 +110,37 @@ const AIControlPage: React.FC = () => {
           }
         };
 
-        ws.onclose = () => {
-          console.log('WebSocket disconnected, reconnecting...');
-          reconnectTimeout = setTimeout(connect, 3000);
+        ws.onclose = (event) => {
+          console.log(`WebSocket disconnected (code: ${event.code}, reason: ${event.reason})`);
+          if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000); // Exponential backoff
+            console.log(`Reconnecting in ${delay}ms...`);
+            reconnectTimeout = setTimeout(connect, delay);
+          }
         };
 
         ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
+          console.warn('WebSocket connection failed - this is normal if the backend server is not running');
+          console.debug('WebSocket error details:', error);
         };
       } catch (e) {
-        console.error('WebSocket connection failed:', e);
-        reconnectTimeout = setTimeout(connect, 3000);
+        console.warn('WebSocket connection failed - this is normal if the backend server is not running');
+        console.debug('WebSocket connection error:', e);
+        reconnectAttempts++;
+        if (reconnectAttempts < maxReconnectAttempts) {
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 10000);
+          reconnectTimeout = setTimeout(connect, delay);
+        }
       }
     };
 
-    connect();
+    // Only attempt WebSocket connection if WS_BASE_URL is configured
+    if (WS_BASE_URL && WS_BASE_URL !== 'ws://localhost:8000') {
+      connect();
+    } else {
+      console.log('WebSocket URL not configured or using default. Skipping WebSocket connection.');
+    }
 
     return () => {
       if (ws) {

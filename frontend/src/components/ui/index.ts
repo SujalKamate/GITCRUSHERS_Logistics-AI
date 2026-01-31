@@ -12,3 +12,4 @@ export { default as ErrorMessage } from './ErrorMessage';
 export { default as Modal } from './Modal';
 export { default as DataTable } from './DataTable';
 export { default as Notification } from './Notification';
+export { default as ConnectionStatus } from './ConnectionStatus';

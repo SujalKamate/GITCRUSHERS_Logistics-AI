@@ -1,7 +1,7 @@
 """
-Grok LLM client for the reasoning layer.
+Groq LLM client for the reasoning layer.
 
-Provides integration with xAI's Grok API including:
+Provides integration with Groq's fast inference API including:
 - API client with retry logic
 - Rate limiting
 - Error handling and fallbacks
@@ -32,19 +32,19 @@ from config.settings import settings
 logger = structlog.get_logger(__name__)
 
 
-class GrokClientError(Exception):
-    """Base exception for Grok client errors."""
+class GroqClientError(Exception):
+    """Base exception for Groq client errors."""
     pass
 
 
-class GrokRateLimitError(GrokClientError):
+class GroqRateLimitError(GroqClientError):
     """Raised when rate limited by the API."""
     pass
 
 
-class GrokClient:
+class GroqClient:
     """
-    Client for interacting with Grok LLM via xAI API.
+    Client for interacting with Groq's fast inference API.
 
     Features:
     - Automatic retry with exponential backoff
@@ -64,10 +64,10 @@ class GrokClient:
         max_retries: int = None,
     ):
         """
-        Initialize the Grok client.
+        Initialize the Groq client.
 
         Args:
-            api_key: xAI API key (defaults to settings)
+            api_key: Groq API key (defaults to settings)
             base_url: API base URL (defaults to settings)
             model: Model to use (defaults to settings)
             temperature: LLM temperature (defaults to settings)
@@ -75,9 +75,9 @@ class GrokClient:
             timeout: Request timeout in seconds (defaults to settings)
             max_retries: Max retry attempts (defaults to settings)
         """
-        self.api_key = api_key or settings.XAI_API_KEY
-        self.base_url = base_url or settings.XAI_BASE_URL
-        self.model = model or settings.GROK_MODEL
+        self.api_key = api_key or settings.GROQ_API_KEY
+        self.base_url = base_url or settings.GROQ_BASE_URL
+        self.model = model or settings.GROQ_MODEL
         self.temperature = temperature or settings.LLM_TEMPERATURE
         self.max_tokens = max_tokens or settings.LLM_MAX_TOKENS
         self.timeout = timeout or settings.LLM_TIMEOUT
@@ -109,9 +109,9 @@ class GrokClient:
                 base_url=self.base_url,
                 timeout=self.timeout,
             )
-            logger.info("Grok client initialized", model=self.model)
+            logger.info("Groq client initialized", model=self.model)
         except Exception as e:
-            logger.warning("Failed to initialize Grok client", error=str(e))
+            logger.warning("Failed to initialize Groq client", error=str(e))
 
     @property
     def is_available(self) -> bool:
@@ -132,7 +132,7 @@ class GrokClient:
         response_format: str = None,
     ) -> dict[str, Any]:
         """
-        Get a completion from Grok.
+        Get a completion from Groq.
 
         Args:
             prompt: The user prompt
@@ -160,8 +160,13 @@ class GrokClient:
                 "max_tokens": max_tokens or self.max_tokens,
             }
 
+            # Note: Groq doesn't support response_format yet, so we'll handle JSON in post-processing
             if response_format == "json":
-                kwargs["response_format"] = {"type": "json_object"}
+                # Add JSON instruction to the prompt
+                if system_prompt:
+                    messages[0]["content"] += "\n\nIMPORTANT: Respond with valid JSON only."
+                else:
+                    messages.insert(0, {"role": "system", "content": "Respond with valid JSON only."})
 
             response = self._client.chat.completions.create(**kwargs)
 
@@ -180,15 +185,15 @@ class GrokClient:
             }
 
         except RateLimitError as e:
-            logger.warning("Rate limited by Grok API", error=str(e))
-            raise GrokRateLimitError(str(e))
+            logger.warning("Rate limited by Groq API", error=str(e))
+            raise GroqRateLimitError(str(e))
 
         except APIError as e:
-            logger.error("Grok API error", error=str(e))
+            logger.error("Groq API error", error=str(e))
             raise
 
         except Exception as e:
-            logger.error("Unexpected error calling Grok", error=str(e))
+            logger.error("Unexpected error calling Groq", error=str(e))
             return self._fallback_response(prompt, str(e))
 
     async def complete_async(
@@ -219,7 +224,10 @@ class GrokClient:
             }
 
             if response_format == "json":
-                kwargs["response_format"] = {"type": "json_object"}
+                if system_prompt:
+                    messages[0]["content"] += "\n\nIMPORTANT: Respond with valid JSON only."
+                else:
+                    messages.insert(0, {"role": "system", "content": "Respond with valid JSON only."})
 
             response = await self._async_client.chat.completions.create(**kwargs)
 
@@ -238,7 +246,7 @@ class GrokClient:
             }
 
         except Exception as e:
-            logger.error("Async Grok call failed", error=str(e))
+            logger.error("Async Groq call failed", error=str(e))
             return self._fallback_response(prompt, str(e))
 
     def complete_json(
@@ -248,7 +256,7 @@ class GrokClient:
         schema: dict = None,
     ) -> dict[str, Any]:
         """
-        Get a JSON-formatted completion from Grok.
+        Get a JSON-formatted completion from Groq.
 
         Args:
             prompt: The user prompt (should request JSON output)
@@ -324,8 +332,25 @@ class GrokClient:
 
     def _generate_fallback_content(self, prompt: str) -> str:
         """Generate basic fallback content based on prompt."""
-        # Simple rule-based fallback
-        if "issue" in prompt.lower() or "problem" in prompt.lower():
+        # Enhanced rule-based fallback with actual logistics logic
+        if "situation" in prompt.lower() and "assessment" in prompt.lower():
+            return json.dumps({
+                "situation_summary": "Rule-based analysis: System monitoring active fleet",
+                "issues": self._detect_issues_rule_based(prompt),
+                "risk_assessment": "Medium - Manual verification recommended",
+                "recommendations": [
+                    "Review truck locations for anomalies",
+                    "Check traffic conditions on active routes",
+                    "Verify load assignments and priorities"
+                ],
+                "confidence": 0.6,
+                "reasoning_trace": [
+                    "Applied rule-based issue detection",
+                    "Analyzed fleet status patterns",
+                    "Generated safety-first recommendations"
+                ]
+            })
+        elif "issue" in prompt.lower() or "problem" in prompt.lower():
             return json.dumps({
                 "situation_summary": "Unable to analyze - LLM unavailable",
                 "issues": [],
@@ -334,6 +359,46 @@ class GrokClient:
                 "confidence": 0.0,
             })
         return "Fallback response - LLM unavailable. Please review manually."
+
+    def _detect_issues_rule_based(self, prompt: str) -> list:
+        """Enhanced rule-based issue detection from prompt content."""
+        issues = []
+        
+        # Extract basic patterns from prompt
+        if "stuck" in prompt.lower():
+            issues.append({
+                "id": f"ISSUE-STUCK-{datetime.utcnow().strftime('%H%M%S')}",
+                "type": "stuck",
+                "severity": "high",
+                "description": "Truck appears to be stuck based on status",
+                "affected_truck_ids": [],
+                "affected_load_ids": [],
+                "metadata": {"detection_method": "rule_based"}
+            })
+        
+        if "heavy" in prompt.lower() and "traffic" in prompt.lower():
+            issues.append({
+                "id": f"ISSUE-TRAFFIC-{datetime.utcnow().strftime('%H%M%S')}",
+                "type": "traffic",
+                "severity": "medium",
+                "description": "Heavy traffic conditions detected",
+                "affected_truck_ids": [],
+                "affected_load_ids": [],
+                "metadata": {"detection_method": "rule_based"}
+            })
+        
+        if "urgent" in prompt.lower() and ("unassigned" in prompt.lower() or "pending" in prompt.lower()):
+            issues.append({
+                "id": f"ISSUE-CAPACITY-{datetime.utcnow().strftime('%H%M%S')}",
+                "type": "capacity_mismatch",
+                "severity": "high",
+                "description": "Urgent loads require immediate assignment",
+                "affected_truck_ids": [],
+                "affected_load_ids": [],
+                "metadata": {"detection_method": "rule_based"}
+            })
+        
+        return issues
 
     def get_stats(self) -> dict[str, Any]:
         """Get usage statistics."""
@@ -347,12 +412,12 @@ class GrokClient:
 
 
 # Singleton instance
-_grok_client: Optional[GrokClient] = None
+_groq_client: Optional[GroqClient] = None
 
 
-def get_grok_client() -> GrokClient:
-    """Get or create the global Grok client instance."""
-    global _grok_client
-    if _grok_client is None:
-        _grok_client = GrokClient()
-    return _grok_client
+def get_groq_client() -> GroqClient:
+    """Get or create the global Groq client instance."""
+    global _groq_client
+    if _groq_client is None:
+        _groq_client = GroqClient()
+    return _groq_client

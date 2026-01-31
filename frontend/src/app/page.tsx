@@ -107,19 +107,19 @@ export default function HomePage() {
                 Interactive map showing live truck positions, routes, and traffic conditions.
               </p>
               <div className="bg-gray-100 rounded-lg h-32 flex items-center justify-center">
-                <span className="text-gray-500">Map component loading...</span>
+                <span className="text-gray-500">✅ Available at /fleet</span>
               </div>
             </Card.Content>
           </Card>
 
           <Card>
-            <Card.Header title="🤖 AI Decision Center" />
+            <Card.Header title="🤖 AI Control Loop" />
             <Card.Content>
               <p className="text-gray-600 mb-4">
-                Review and approve AI-generated decisions for route optimization and load assignment.
+                Monitor the continuous AI decision-making process with real-time cycle visualization.
               </p>
               <div className="bg-gray-100 rounded-lg h-32 flex items-center justify-center">
-                <span className="text-gray-500">Decision interface loading...</span>
+                <span className="text-gray-500">✅ Available at /ai-control</span>
               </div>
             </Card.Content>
           </Card>

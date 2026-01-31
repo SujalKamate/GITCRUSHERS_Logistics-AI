@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
 @layer base {
   html {
     font-family: system-ui, sans-serif;
@@ -47,5 +50,20 @@
   
   .status-delayed {
     @apply bg-warning-100 text-warning-800;
+  }
+
+  /* Custom Leaflet marker styles */
+  .custom-truck-marker {
+    background: transparent !important;
+    border: none !important;
+  }
+  
+  /* Leaflet popup customization */
+  .leaflet-popup-content-wrapper {
+    @apply rounded-lg shadow-lg;
+  }
+  
+  .leaflet-popup-content {
+    @apply m-0;
   }
 }

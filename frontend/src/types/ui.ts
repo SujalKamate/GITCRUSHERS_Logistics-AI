@@ -142,7 +142,7 @@ export interface SidebarProps extends BaseComponentProps {
 export interface SidebarItem {
   id: string;
   label: string;
-  icon?: React.ComponentType<any>;
+  icon?: React.ComponentType<{ className?: string }>;
   href?: string;
   onClick?: () => void;
   active?: boolean;

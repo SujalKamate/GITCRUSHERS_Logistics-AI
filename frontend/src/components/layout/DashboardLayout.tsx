@@ -35,7 +35,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <Sidebar 
             collapsed={collapsed} 
             onToggle={handleToggle}
-            items={[]} // Empty items for now, will be populated by the Sidebar component itself
           />
         )}
 

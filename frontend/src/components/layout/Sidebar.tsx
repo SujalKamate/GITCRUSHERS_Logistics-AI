@@ -17,7 +17,8 @@ import {
   BarChart3, 
   Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  type LucideIcon
 } from 'lucide-react';
 import { SidebarProps, SidebarItem } from '@/types';
 
@@ -101,6 +102,11 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
+        {items.length === 0 && (
+          <div className="text-sm text-gray-500 text-center py-4">
+            No navigation items
+          </div>
+        )}
         {items.map((item: SidebarItem) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -116,7 +122,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                   : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
               )}
             >
-              {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
+              {Icon ? <Icon className="h-5 w-5 flex-shrink-0" /> : (
+                <div className="h-5 w-5 flex-shrink-0 bg-gray-300 rounded"></div>
+              )}
               {!collapsed && (
                 <span className="ml-3 truncate">{item.label}</span>
               )}

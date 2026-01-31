@@ -4,18 +4,20 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Map, List, Truck as TruckIcon } from 'lucide-react';
+import { Map, List, Truck as TruckIcon, RefreshCw } from 'lucide-react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, Button, LoadingSpinner } from '@/components/ui';
 import { TruckList, TruckDetail } from '@/components/fleet';
 import { Truck, TruckStatus, MapTruck } from '@/types';
+import { useFleetStatus } from '@/lib/hooks/useApi';
+import { WS_BASE_URL } from '@/lib/constants';
 
 // Dynamically import FleetMap to avoid SSR issues with Leaflet
 const FleetMap = dynamic(
   () => import('@/components/fleet/FleetMap'),
-  { 
+  {
     ssr: false,
     loading: () => (
       <div className="h-96 flex items-center justify-center bg-gray-100 rounded-lg">
@@ -25,127 +27,76 @@ const FleetMap = dynamic(
   }
 );
 
-// Mock data for demonstration
-const mockTrucks: Truck[] = [
-  {
-    id: 'TRK-001',
-    name: 'Alpha Express',
-    status: TruckStatus.EN_ROUTE,
-    current_location: {
-      latitude: 40.7589,
-      longitude: -73.9851,
-      address: 'Times Square, New York, NY',
-    },
-    current_load_id: 'LOAD-123',
-    driver_id: 'DRV-001',
-    capacity_kg: 15000,
-    fuel_level_percent: 75,
-    last_gps_reading: {
-      truck_id: 'TRK-001',
-      timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(), // 2 minutes ago
-      location: {
-        latitude: 40.7589,
-        longitude: -73.9851,
-      },
-      speed_kmh: 45,
-      heading: 90,
-      accuracy_meters: 5,
-    },
-    total_distance_km: 12450,
-    total_deliveries: 89,
-  },
-  {
-    id: 'TRK-002',
-    name: 'Beta Logistics',
-    status: TruckStatus.LOADING,
-    current_location: {
-      latitude: 40.7505,
-      longitude: -73.9934,
-      address: 'Chelsea Market, New York, NY',
-    },
-    driver_id: 'DRV-002',
-    capacity_kg: 12000,
-    fuel_level_percent: 45,
-    last_gps_reading: {
-      truck_id: 'TRK-002',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
-      location: {
-        latitude: 40.7505,
-        longitude: -73.9934,
-      },
-      speed_kmh: 0,
-      heading: 180,
-      accuracy_meters: 3,
-    },
-    total_distance_km: 8920,
-    total_deliveries: 67,
-  },
-  {
-    id: 'TRK-003',
-    name: 'Gamma Transport',
-    status: TruckStatus.STUCK,
-    current_location: {
-      latitude: 40.7282,
-      longitude: -74.0776,
-      address: 'Holland Tunnel, New York, NY',
-    },
-    current_load_id: 'LOAD-456',
-    driver_id: 'DRV-003',
-    capacity_kg: 18000,
-    fuel_level_percent: 20,
-    last_gps_reading: {
-      truck_id: 'TRK-003',
-      timestamp: new Date(Date.now() - 1 * 60 * 1000).toISOString(), // 1 minute ago
-      location: {
-        latitude: 40.7282,
-        longitude: -74.0776,
-      },
-      speed_kmh: 0,
-      heading: 270,
-      accuracy_meters: 8,
-    },
-    total_distance_km: 15670,
-    total_deliveries: 102,
-  },
-  {
-    id: 'TRK-004',
-    name: 'Delta Freight',
-    status: TruckStatus.IDLE,
-    current_location: {
-      latitude: 40.7831,
-      longitude: -73.9712,
-      address: 'Central Park, New York, NY',
-    },
-    driver_id: 'DRV-004',
-    capacity_kg: 10000,
-    fuel_level_percent: 90,
-    last_gps_reading: {
-      truck_id: 'TRK-004',
-      timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(), // 10 minutes ago
-      location: {
-        latitude: 40.7831,
-        longitude: -73.9712,
-      },
-      speed_kmh: 0,
-      heading: 0,
-      accuracy_meters: 2,
-    },
-    total_distance_km: 6780,
-    total_deliveries: 45,
-  },
-];
-
 const FleetPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null);
-  const [trucks, setTrucks] = useState<Truck[]>(mockTrucks);
-  const [loading, setLoading] = useState(false);
+
+  // Fetch fleet data from API
+  const { data: fleetStatus, loading, error, refetch } = useFleetStatus();
+
+  // Extract trucks from API response
+  const trucks: Truck[] = fleetStatus?.trucks ?? [];
+
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: NodeJS.Timeout;
+
+    const connect = () => {
+      try {
+        ws = new WebSocket(`${WS_BASE_URL}/ws`);
+
+        ws.onopen = () => {
+          console.log('WebSocket connected');
+          // Subscribe to truck location updates
+          ws?.send(JSON.stringify({
+            type: 'subscribe',
+            events: ['truck_location_update', 'truck_status_update']
+          }));
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            if (message.type === 'truck_location_update') {
+              // Refetch to get updated data
+              // In a production app, you'd update state directly
+              refetch();
+            }
+          } catch (e) {
+            console.error('Failed to parse WebSocket message:', e);
+          }
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket disconnected, reconnecting...');
+          reconnectTimeout = setTimeout(connect, 3000);
+        };
+
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+        };
+      } catch (e) {
+        console.error('WebSocket connection failed:', e);
+        reconnectTimeout = setTimeout(connect, 3000);
+      }
+    };
+
+    connect();
+
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+      clearTimeout(reconnectTimeout);
+    };
+  }, [refetch]);
 
   // Convert trucks to map format
   const mapTrucks: MapTruck[] = trucks.map(truck => ({
     id: truck.id,
     name: truck.name,
-    position: truck.current_location 
+    position: truck.current_location
       ? [truck.current_location.latitude, truck.current_location.longitude]
       : [40.7128, -74.0060], // Default to NYC
     status: truck.status,
@@ -155,52 +106,24 @@ const FleetPage: React.FC = () => {
   }));
 
   // Handle truck selection
-  const handleTruckSelect = (truckId: string) => {
+  const handleTruckSelect = useCallback((truckId: string) => {
     const truck = trucks.find(t => t.id === truckId);
     setSelectedTruck(truck || null);
-  };
+  }, [trucks]);
 
   // Handle truck selection from list
-  const handleTruckSelectFromList = (truck: Truck) => {
+  const handleTruckSelectFromList = useCallback((truck: Truck) => {
     setSelectedTruck(truck);
     setViewMode('map'); // Switch to map view to show selected truck
-  };
-
-  // Mock real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTrucks(prevTrucks => 
-        prevTrucks.map(truck => {
-          // Simulate small position changes for moving trucks
-          if (truck.status === TruckStatus.EN_ROUTE && truck.current_location) {
-            const latChange = (Math.random() - 0.5) * 0.001; // Small random change
-            const lngChange = (Math.random() - 0.5) * 0.001;
-            
-            return {
-              ...truck,
-              current_location: {
-                ...truck.current_location,
-                latitude: truck.current_location.latitude + latChange,
-                longitude: truck.current_location.longitude + lngChange,
-              },
-              last_gps_reading: truck.last_gps_reading ? {
-                ...truck.last_gps_reading,
-                timestamp: new Date().toISOString(),
-                location: {
-                  latitude: truck.current_location.latitude + latChange,
-                  longitude: truck.current_location.longitude + lngChange,
-                },
-                speed_kmh: 30 + Math.random() * 40, // Random speed between 30-70
-              } : undefined,
-            };
-          }
-          return truck;
-        })
-      );
-    }, 5000); // Update every 5 seconds
-
-    return () => clearInterval(interval);
   }, []);
+
+  // Calculate stats
+  const stats = {
+    total: trucks.length,
+    enRoute: trucks.filter(t => t.status === TruckStatus.EN_ROUTE).length,
+    loading: trucks.filter(t => t.status === TruckStatus.LOADING).length,
+    issues: trucks.filter(t => t.status === TruckStatus.STUCK || t.status === TruckStatus.DELAYED).length,
+  };
 
   return (
     <DashboardLayout>
@@ -211,8 +134,17 @@ const FleetPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">Fleet Management</h1>
             <p className="text-gray-600">Monitor and manage your truck fleet in real-time</p>
           </div>
-          
+
           <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              icon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />}
+              disabled={loading}
+            >
+              Refresh
+            </Button>
             <Button
               variant={viewMode === 'map' ? 'primary' : 'outline'}
               size="sm"
@@ -240,8 +172,10 @@ const FleetPage: React.FC = () => {
                 <TruckIcon className="w-5 h-5 text-primary-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Total Trucks</p>
-                <p className="text-xl font-semibold">{trucks.length}</p>
+                <div className="text-sm text-gray-600">Total Trucks</div>
+                <div className="text-xl font-semibold">
+                  {loading ? <LoadingSpinner size="sm" /> : stats.total}
+                </div>
               </div>
             </div>
           </Card>
@@ -252,10 +186,10 @@ const FleetPage: React.FC = () => {
                 <TruckIcon className="w-5 h-5 text-success-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">En Route</p>
-                <p className="text-xl font-semibold">
-                  {trucks.filter(t => t.status === TruckStatus.EN_ROUTE).length}
-                </p>
+                <div className="text-sm text-gray-600">En Route</div>
+                <div className="text-xl font-semibold">
+                  {loading ? <LoadingSpinner size="sm" /> : stats.enRoute}
+                </div>
               </div>
             </div>
           </Card>
@@ -266,10 +200,10 @@ const FleetPage: React.FC = () => {
                 <TruckIcon className="w-5 h-5 text-warning-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Loading</p>
-                <p className="text-xl font-semibold">
-                  {trucks.filter(t => t.status === TruckStatus.LOADING).length}
-                </p>
+                <div className="text-sm text-gray-600">Loading</div>
+                <div className="text-xl font-semibold">
+                  {loading ? <LoadingSpinner size="sm" /> : stats.loading}
+                </div>
               </div>
             </div>
           </Card>
@@ -280,20 +214,43 @@ const FleetPage: React.FC = () => {
                 <TruckIcon className="w-5 h-5 text-danger-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Issues</p>
-                <p className="text-xl font-semibold">
-                  {trucks.filter(t => t.status === TruckStatus.STUCK || t.status === TruckStatus.DELAYED).length}
-                </p>
+                <div className="text-sm text-gray-600">Issues</div>
+                <div className="text-xl font-semibold">
+                  {loading ? <LoadingSpinner size="sm" /> : stats.issues}
+                </div>
               </div>
             </div>
           </Card>
         </div>
 
+        {/* Error State */}
+        {error && (
+          <Card className="border-danger-200 bg-danger-50">
+            <div className="p-4 text-danger-700">
+              Failed to load fleet data: {error}
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-4"
+                onClick={() => refetch()}
+              >
+                Retry
+              </Button>
+            </div>
+          </Card>
+        )}
+
         {/* Main Content */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Map/List View */}
           <div className="xl:col-span-2">
-            {viewMode === 'map' ? (
+            {loading && trucks.length === 0 ? (
+              <Card>
+                <div className="h-96 flex items-center justify-center">
+                  <LoadingSpinner text="Loading fleet data..." />
+                </div>
+              </Card>
+            ) : viewMode === 'map' ? (
               <FleetMap
                 trucks={mapTrucks}
                 height="600px"

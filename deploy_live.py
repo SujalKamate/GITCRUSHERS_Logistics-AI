@@ -207,37 +207,41 @@ def update_cors_settings(api_url, frontend_url):
     
     input("Press Enter after updating CORS settings...")
 
-def show_final_results(api_url, frontend_url):
+def show_final_results(api_url, frontend_url=None):
     """Show the final deployment results"""
     print("\n🎉 DEPLOYMENT COMPLETE!")
     print("=" * 50)
     
-    print("Your Logistics AI System is now LIVE with these URLs:")
+    print("Your Logistics AI System is now LIVE with ONE DEMO URL:")
     print()
     
-    print("📊 LOGISTICS DASHBOARD (for logistics team):")
-    print(f"   {frontend_url}")
+    print("🌟 COMPLETE SYSTEM DEMO (share this with judges):")
+    print(f"   {api_url}")
+    print("   ↳ Landing page with all three interfaces integrated")
     print()
     
-    print("📱 CUSTOMER MOBILE APP (for customers):")
-    print(f"   {api_url}/customer-app/")
+    print("📋 What judges will find at this URL:")
+    print("   • Complete system overview and workflow explanation")
+    print("   • Interactive tabs to explore all three interfaces")
+    print("   • Step-by-step demo guide for testing")
+    print("   • Technical highlights and AI integration details")
     print()
     
-    print("🚛 DRIVER MOBILE APP (for drivers):")
-    print(f"   {api_url}/driver-app/")
+    print("🎯 Individual Interface Access (if needed):")
+    print(f"   📱 Customer App: {api_url}/customer-app/")
+    print(f"   🚛 Driver App: {api_url}/driver-app/")
+    if frontend_url:
+        print(f"   📊 Dashboard: {frontend_url}")
+    print(f"   🔧 API Health: {api_url}/health")
     print()
     
-    print("🔧 API HEALTH CHECK:")
-    print(f"   {api_url}/health")
-    print()
+    print("✨ Perfect for judges - ONE URL showcases the complete system!")
+    print("Share this single link to demonstrate all features and capabilities.")
     
-    print("✨ Your system is now accessible worldwide!")
-    print("Share these URLs with your users to start using the system.")
-    
-    # Test all URLs
-    test_all = input("\nWould you like to test all URLs now? (y/n): ").lower()
-    if test_all == 'y':
-        test_deployment(api_url, frontend_url)
+    # Test the demo URL
+    test_demo = input(f"\nWould you like to test the demo URL now? (y/n): ").lower()
+    if test_demo == 'y':
+        test_demo_url(api_url)
 
 def test_deployment(api_url, frontend_url):
     """Test all deployed services"""
@@ -312,3 +316,53 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def test_demo_url(api_url):
+    """Test the demo landing page"""
+    print(f"\n🔍 Testing demo URL: {api_url}")
+    
+    try:
+        import requests
+        
+        # Test demo landing page
+        response = requests.get(api_url, timeout=10)
+        if response.status_code == 200:
+            print("✅ Demo Landing Page: WORKING")
+        else:
+            print(f"❌ Demo Landing Page: FAILED ({response.status_code})")
+        
+        # Test demo page directly
+        response = requests.get(f"{api_url}/demo/", timeout=10)
+        if response.status_code == 200:
+            print("✅ Demo Page: WORKING")
+        else:
+            print(f"❌ Demo Page: FAILED ({response.status_code})")
+        
+        # Test customer app
+        response = requests.get(f"{api_url}/customer-app/", timeout=10)
+        if response.status_code == 200:
+            print("✅ Customer App: WORKING")
+        else:
+            print(f"❌ Customer App: FAILED ({response.status_code})")
+        
+        # Test driver app
+        response = requests.get(f"{api_url}/driver-app/", timeout=10)
+        if response.status_code == 200:
+            print("✅ Driver App: WORKING")
+        else:
+            print(f"❌ Driver App: FAILED ({response.status_code})")
+        
+        # Test API health
+        response = requests.get(f"{api_url}/health", timeout=10)
+        if response.status_code == 200:
+            print("✅ API Health: WORKING")
+            data = response.json()
+            print(f"   Trucks: {data.get('trucks', 0)}, Loads: {data.get('loads', 0)}")
+        else:
+            print(f"❌ API Health: FAILED ({response.status_code})")
+        
+        print(f"\n🎯 Demo URL ready for judges: {api_url}")
+        
+    except Exception as e:
+        print(f"❌ Testing error: {e}")
+        print("   The services might still be starting up.")

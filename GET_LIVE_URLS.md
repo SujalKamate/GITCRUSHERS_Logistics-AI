@@ -1,12 +1,29 @@
-# 🌍 Get Your Logistics AI System Live - Public URLs
+# 🚀 Get Your Logistics AI System Live - Single Demo URL
 
-## 🎯 Goal: Deploy and Get Working Links
+## 🎯 Goal: One URL for Complete System Demo
 
-Transform your local Logistics AI system into a live, publicly accessible application with these URLs:
+Deploy your Logistics AI system and get **ONE single URL** that showcases all three interfaces for judges:
 
-- **📊 Dashboard**: `https://your-app.vercel.app` (Logistics team interface)
-- **📱 Customer App**: `https://your-api.railway.app/customer-app/` (Customer requests)
-- **🚛 Driver App**: `https://your-api.railway.app/driver-app/` (Driver notifications)
+**Demo URL**: `https://your-app.railway.app` 
+- **Landing Page**: Complete system overview and interface tabs
+- **Customer App**: Embedded and accessible via tabs
+- **Dashboard**: Integrated for logistics team demo
+- **Driver App**: Real-time notifications demo
+
+## 🌟 **What Judges Will Experience**
+
+### **Single URL Contains:**
+1. **📋 System Overview** - Complete workflow explanation
+2. **📱 Customer Interface** - Submit delivery requests  
+3. **📊 Dashboard Interface** - AI processing and fleet management
+4. **🚛 Driver Interface** - Real-time notifications and delivery management
+5. **🎯 Demo Guide** - Step-by-step testing instructions
+
+### **Perfect for Judging:**
+- ✅ **One link to share** - No confusion with multiple URLs
+- ✅ **Complete system demo** - All features in one place
+- ✅ **Interactive experience** - Judges can test the full workflow
+- ✅ **Professional presentation** - Polished landing page with explanations
 
 ## 🚀 Fastest Path to Live URLs (30 minutes)
 

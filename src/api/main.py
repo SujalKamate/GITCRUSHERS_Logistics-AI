@@ -93,6 +93,19 @@ app.include_router(control_loop_router)
 app.include_router(decisions_router)
 app.include_router(requests_router)
 
+# Add demo landing page redirect
+@app.get("/demo")
+async def demo_landing():
+    """Redirect to demo landing page."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/demo/")
+
+@app.get("/demo/")
+async def demo_landing_index():
+    """Redirect to demo landing page index."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/demo/index.html")
+
 # Add customer app redirect before mounting static files
 @app.get("/customer-app/")
 async def customer_app_index():
@@ -108,6 +121,7 @@ async def driver_app_index():
     return RedirectResponse(url="/driver-app/index.html")
 
 # Mount static files
+app.mount("/demo", StaticFiles(directory="demo-landing"), name="demo-landing")
 app.mount("/customer-app", StaticFiles(directory="customer-app"), name="customer-app")
 app.mount("/driver-app", StaticFiles(directory="driver-app"), name="driver-app")
 
@@ -118,12 +132,9 @@ app.mount("/driver-app", StaticFiles(directory="driver-app"), name="driver-app")
 
 @app.get("/")
 async def root():
-    """Root endpoint for health check."""
-    return {
-        "status": "healthy",
-        "service": "Logistics AI Dashboard API",
-        "version": "1.0.0"
-    }
+    """Root endpoint - redirect to demo landing page."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/demo/")
 
 
 @app.get("/health")

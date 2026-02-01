@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistics AI System - Complete Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .interface-frame {
+            height: 600px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="hero-gradient text-white py-16">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-5xl font-bold mb-4">🚛 Logistics AI System</h1>
+            <p class="text-xl mb-8 opacity-90">Complete AI-Powered Logistics Management Platform</p>
+            <div class="flex justify-center space-x-8 text-sm">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Real-time AI Processing</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Multi-Interface System</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <span>Live Notifications</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- System Overview -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Complete Workflow Demonstration</h2>
+                <p class="text-gray-600 max-w-3xl mx-auto">
+                    Experience the full logistics workflow: Customer requests → AI processing → Driver notifications. 
+                    All three interfaces work together in real-time to create a seamless logistics management system.
+                </p>
+            </div>
+
+            <!-- Workflow Steps -->
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                <div class="feature-card bg-blue-50 p-8 rounded-xl text-center">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-mobile-alt text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">1. Customer Request</h3>
+                    <p class="text-gray-600">Customers submit delivery requests through mobile-optimized interface</p>
+                </div>
+
+                <div class="feature-card bg-purple-50 p-8 rounded-xl text-center">
+                    <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-brain text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">2. AI Processing</h3>
+                    <p class="text-gray-600">AI analyzes requests, optimizes routes, and assigns best available trucks</p>
+                </div>
+
+                <div class="feature-card bg-green-50 p-8 rounded-xl text-center">
+                    <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-truck text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">3. Driver Notification</h3>
+                    <p class="text-gray-600">Drivers receive real-time notifications and manage deliveries</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interface Tabs -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Interactive System Demo</h2>
+                <p class="text-gray-600">Click on each interface to explore the complete system</p>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="flex justify-center mb-8">
+                <div class="bg-white rounded-lg p-2 shadow-lg">
+                    <button onclick="showInterface('customer')" 
+                            class="tab-button px-6 py-3 rounded-lg font-medium transition-all duration-300 active">
+                        📱 Customer App
+                    </button>
+                    <button onclick="showInterface('dashboard')" 
+                            class="tab-button px-6 py-3 rounded-lg font-medium transition-all duration-300 ml-2">
+                        📊 Logistics Dashboard
+                    </button>
+                    <button onclick="showInterface('driver')" 
+                            class="tab-button px-6 py-3 rounded-lg font-medium transition-all duration-300 ml-2">
+                        🚛 Driver App
+                    </button>
+                </div>
+            </div>
+
+            <!-- Interface Content -->
+            <div class="max-w-6xl mx-auto">
+                <!-- Customer App -->
+                <div id="customer-interface" class="tab-content active">
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-mobile-alt text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-800">Customer Mobile App</h3>
+                                <p class="text-gray-600">Mobile-optimized interface for delivery requests</p>
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold mb-3">Key Features:</h4>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Easy delivery request form</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Real-time status tracking</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Mobile-responsive design</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Instant confirmation</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <button onclick="openCustomerApp()" 
+                                        class="w-full bg-blue-500 hover:bg-blue-600 text-white py-4 px-6 rounded-lg font-medium transition-colors">
+                                    <i class="fas fa-external-link-alt mr-2"></i>
+                                    Open Customer App
+                                </button>
+                                <p class="text-sm text-gray-500 mt-2 text-center">Try submitting a delivery request</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="interface-frame">
+                        <iframe src="/customer-app/" class="w-full h-full"></iframe>
+                    </div>
+                </div>
+
+                <!-- Dashboard -->
+                <div id="dashboard-interface" class="tab-content">
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-chart-line text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-800">Logistics Dashboard</h3>
+                                <p class="text-gray-600">AI-powered management interface for logistics teams</p>
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold mb-3">Key Features:</h4>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> AI-powered request processing</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Real-time fleet monitoring</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Journey tracking on map</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Performance analytics</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <button onclick="openDashboard()" 
+                                        class="w-full bg-purple-500 hover:bg-purple-600 text-white py-4 px-6 rounded-lg font-medium transition-colors">
+                                    <i class="fas fa-external-link-alt mr-2"></i>
+                                    Open Dashboard
+                                </button>
+                                <p class="text-sm text-gray-500 mt-2 text-center">Process requests and monitor fleet</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="interface-frame">
+                        <iframe src="/" class="w-full h-full"></iframe>
+                    </div>
+                </div>
+
+                <!-- Driver App -->
+                <div id="driver-interface" class="tab-content">
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-truck text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-800">Driver Mobile App</h3>
+                                <p class="text-gray-600">Real-time notifications and delivery management</p>
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="font-semibold mb-3">Key Features:</h4>
+                                <ul class="space-y-2 text-gray-600">
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Real-time delivery notifications</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Status update controls</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Navigation integration</li>
+                                    <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i> Performance tracking</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <button onclick="openDriverApp()" 
+                                        class="w-full bg-green-500 hover:bg-green-600 text-white py-4 px-6 rounded-lg font-medium transition-colors">
+                                    <i class="fas fa-external-link-alt mr-2"></i>
+                                    Open Driver App
+                                </button>
+                                <p class="text-sm text-gray-500 mt-2 text-center">Receive and manage deliveries</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="interface-frame">
+                        <iframe src="/driver-app/" class="w-full h-full"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Features -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Technical Highlights</h2>
+                <p class="text-gray-600">Built with modern technologies and AI integration</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-robot text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">AI Integration</h3>
+                    <p class="text-gray-600 text-sm">Groq LLM for intelligent request processing and optimization</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bolt text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Real-time Updates</h3>
+                    <p class="text-gray-600 text-sm">WebSocket connections for instant notifications</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-mobile-alt text-purple-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Mobile Optimized</h3>
+                    <p class="text-gray-600 text-sm">Responsive design for all devices and screen sizes</p>
+                </div>
+
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-map-marked-alt text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="font-semibold mb-2">Journey Tracking</h3>
+                    <p class="text-gray-600 text-sm">Live map visualization of delivery routes</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Instructions -->
+    <section class="py-16 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">🎯 How to Test the Complete System</h2>
+                    
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold">1</div>
+                            <h3 class="font-semibold mb-2">Submit Request</h3>
+                            <p class="text-gray-600 text-sm">Use the Customer App to submit a delivery request with pickup and delivery addresses</p>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold">2</div>
+                            <h3 class="font-semibold mb-2">Process with AI</h3>
+                            <p class="text-gray-600 text-sm">Go to Dashboard, view pending requests, and click "Start AI Processing"</p>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white font-bold">3</div>
+                            <h3 class="font-semibold mb-2">Driver Notification</h3>
+                            <p class="text-gray-600 text-sm">Check Driver App to see real-time notification for the assigned delivery</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 p-6 bg-blue-50 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2">💡 Pro Tip for Judges:</h4>
+                        <p class="text-blue-700 text-sm">
+                            Open multiple browser tabs to see real-time communication between interfaces. 
+                            When you process a request in the Dashboard, you'll immediately see the notification appear in the Driver App!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="hero-gradient text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p class="mb-4">🚛 Logistics AI System - Complete End-to-End Solution</p>
+            <div class="flex justify-center space-x-6 text-sm opacity-75">
+                <span>AI-Powered Processing</span>
+                <span>•</span>
+                <span>Real-time Notifications</span>
+                <span>•</span>
+                <span>Multi-Interface System</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function showInterface(interfaceType) {
+            // Hide all interfaces
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected interface
+            document.getElementById(interfaceType + '-interface').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        function openCustomerApp() {
+            window.open('/customer-app/', '_blank');
+        }
+
+        function openDashboard() {
+            window.open('/', '_blank');
+        }
+
+        function openDriverApp() {
+            window.open('/driver-app/', '_blank');
+        }
+
+        // Auto-refresh iframes every 30 seconds to show live updates
+        setInterval(() => {
+            document.querySelectorAll('iframe').forEach(iframe => {
+                if (iframe.src) {
+                    iframe.src = iframe.src;
+                }
+            });
+        }, 30000);
+    </script>
+</body>
+</html>

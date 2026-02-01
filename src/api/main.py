@@ -58,16 +58,30 @@ app = FastAPI(
 )
 
 # Configure CORS
+import os
+
+# Get allowed origins from environment or use defaults
+cors_origins = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001", 
+    "http://127.0.0.1:3001",
+    "http://localhost:3002",
+    "http://127.0.0.1:3002",
+]
+
+# Add common production domains
+cors_origins.extend([
+    "https://*.vercel.app",
+    "https://*.railway.app", 
+    "https://*.render.com",
+    "https://*.herokuapp.com",
+    "https://*.netlify.app"
+])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-        "http://localhost:3002",
-        "http://127.0.0.1:3002",
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

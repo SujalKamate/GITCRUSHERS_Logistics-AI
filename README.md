@@ -1,5 +1,30 @@
 # Agentic Logistics Control System
 
+## 🚀 Quick Deploy - Get Live URLs
+
+**Deploy your Logistics AI system in 30 minutes and get working public URLs!**
+
+### One-Click Deploy Options:
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/logistics-ai)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/logistics-ai)
+
+### Manual Deploy:
+```bash
+# Run the deployment helper
+python deploy_live.py
+
+# Or use the quick guide
+python deploy.py
+```
+
+**📋 What you'll get:**
+- **📊 Dashboard**: `https://your-app.vercel.app` (Logistics team)
+- **📱 Customer App**: `https://your-api.railway.app/customer-app/` (Customers)
+- **🚛 Driver App**: `https://your-api.railway.app/driver-app/` (Drivers)
+
+---
+
 ## Problem Statement
 
 Road logistics is a critical component of global supply chains, but it suffers from significant inefficiencies that lead to wasted resources, increased costs, and environmental impact. Traditional logistics systems rely on static decision-making, where routes and schedules are planned in advance based on historical data and fixed assumptions. This approach fails to account for real-time changes such as traffic congestion, unexpected delays, or fluctuating demand.

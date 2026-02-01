@@ -1,0 +1,48 @@
+{
+  "name": "Logistics AI System",
+  "description": "Complete AI-powered logistics management system with customer, driver, and dashboard interfaces",
+  "repository": "https://github.com/your-username/logistics-ai",
+  "services": [
+    {
+      "name": "logistics-api",
+      "source": {
+        "repo": "https://github.com/your-username/logistics-ai",
+        "ref": "main"
+      },
+      "build": {
+        "builder": "NIXPACKS",
+        "buildCommand": "pip install -r requirements.txt"
+      },
+      "deploy": {
+        "startCommand": "uvicorn src.api.main:app --host 0.0.0.0 --port $PORT",
+        "healthcheckPath": "/health",
+        "restartPolicyType": "ON_FAILURE"
+      },
+      "env": {
+        "GROQ_API_KEY": {
+          "description": "Your Groq API key for AI features",
+          "generator": {
+            "type": "secret"
+          }
+        },
+        "PORT": {
+          "description": "Port for the API server",
+          "default": "8000"
+        },
+        "CORS_ORIGINS": {
+          "description": "Allowed CORS origins",
+          "default": "*"
+        },
+        "PYTHONPATH": {
+          "description": "Python path for imports",
+          "default": "/app"
+        }
+      }
+    }
+  ],
+  "variables": {
+    "GROQ_API_KEY": {
+      "description": "Get your free API key from https://console.groq.com/keys"
+    }
+  }
+}

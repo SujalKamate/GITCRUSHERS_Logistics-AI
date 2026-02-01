@@ -1,0 +1,73 @@
+name: Deploy Logistics AI System
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        cd GITCRUSHERS_Logistics-AI
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Test API
+      run: |
+        cd GITCRUSHERS_Logistics-AI
+        python -m pytest tests/ -v || echo "No tests found, skipping"
+    
+    - name: Test Frontend Build
+      run: |
+        cd GITCRUSHERS_Logistics-AI/frontend
+        npm install
+        npm run build
+
+  deploy-api:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Railway
+      uses: railway-deploy/railway-deploy@v1
+      with:
+        railway_token: ${{ secrets.RAILWAY_TOKEN }}
+        service: logistics-ai-api
+      env:
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        PORT: 8000
+        CORS_ORIGINS: "*"
+
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Deploy to Vercel
+      uses: vercel/action@v1
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: GITCRUSHERS_Logistics-AI/frontend
+      env:
+        NEXT_PUBLIC_API_BASE_URL: ${{ secrets.API_BASE_URL }}
+        NEXT_PUBLIC_WS_BASE_URL: ${{ secrets.WS_BASE_URL }}

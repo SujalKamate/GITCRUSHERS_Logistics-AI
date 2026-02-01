@@ -58,7 +58,14 @@ class Settings(BaseSettings):
     # API Settings
     API_HOST: str = Field(default="0.0.0.0")
     API_PORT: int = Field(default=8000)
-    CORS_ORIGINS: list[str] = Field(default=["http://localhost:3000"])
+    CORS_ORIGINS: str = Field(default="http://localhost:3000,http://localhost:3002")
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Parse CORS_ORIGINS string into a list."""
+        if self.CORS_ORIGINS == "*":
+            return ["*"]
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
 
     # Logging
     LOG_LEVEL: str = Field(default="INFO")

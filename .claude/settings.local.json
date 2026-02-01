@@ -5,7 +5,8 @@
       "Bash(npx tsc:*)",
       "Bash(git add:*)",
       "Bash(pip install:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(tree:*)"
     ]
   }
 }

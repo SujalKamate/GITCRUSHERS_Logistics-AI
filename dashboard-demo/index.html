@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistics Dashboard - Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-6 shadow-lg">
+        <div class="container mx-auto px-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-truck text-3xl mr-3"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">Logistics AI Dashboard</h1>
+                        <p class="text-sm opacity-90">Real-time Fleet Management & AI Processing</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <div class="text-sm opacity-75">System Status</div>
+                        <div class="flex items-center">
+                            <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                            <span class="text-sm font-medium">Online</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Stats Cards -->
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="card bg-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Active Trucks</p>
+                        <p class="text-3xl font-bold text-blue-600" id="truck-count">10</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-truck text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Pending Requests</p>
+                        <p class="text-3xl font-bold text-orange-600" id="pending-count">3</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clock text-orange-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Completed Today</p>
+                        <p class="text-3xl font-bold text-green-600" id="completed-count">12</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">AI Efficiency</p>
+                        <p class="text-3xl font-bold text-purple-600">94%</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-brain text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Sections -->
+        <div class="grid lg:grid-cols-2 gap-8">
+            <!-- AI Processing Center -->
+            <div class="card bg-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-brain text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800">AI Processing Center</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium text-gray-800">Request #DR-2024-001</span>
+                            <span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">Processing</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Electronics delivery: 123 Main St → 456 Broadway</p>
+                        <div class="mt-2">
+                            <button class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                <i class="fas fa-play mr-1"></i> Start AI Processing
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-green-50 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium text-gray-800">Request #DR-2024-002</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Assigned</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Medical supplies: Hospital → Clinic</p>
+                        <p class="text-xs text-green-600 mt-1">✓ Assigned to TRK-008 • ETA: 45 minutes</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fleet Status -->
+            <div class="card bg-white rounded-xl p-6 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-map text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800">Fleet Status</h2>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-truck text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">TRK-001</p>
+                                <p class="text-xs text-gray-600">Downtown Route</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Available</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-truck text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">TRK-008</p>
+                                <p class="text-xs text-gray-600">En route to pickup</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Active</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-truck text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">TRK-003</p>
+                                <p class="text-xs text-gray-600">Maintenance break</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Busy</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm transition-colors">
+                        <i class="fas fa-map-marked-alt mr-2"></i>
+                        View Live Map
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8">
+            <div class="card bg-white rounded-xl p-6 shadow-lg">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Quick Actions</h2>
+                <div class="grid md:grid-cols-4 gap-4">
+                    <button onclick="window.open('/customer-app/', '_blank')" 
+                            class="flex flex-col items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                        <i class="fas fa-mobile-alt text-blue-600 text-2xl mb-2"></i>
+                        <span class="text-sm font-medium text-gray-800">Customer App</span>
+                    </button>
+
+                    <button onclick="window.open('/driver-app/', '_blank')" 
+                            class="flex flex-col items-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+                        <i class="fas fa-truck text-green-600 text-2xl mb-2"></i>
+                        <span class="text-sm font-medium text-gray-800">Driver App</span>
+                    </button>
+
+                    <button onclick="window.open('/health', '_blank')" 
+                            class="flex flex-col items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+                        <i class="fas fa-heartbeat text-purple-600 text-2xl mb-2"></i>
+                        <span class="text-sm font-medium text-gray-800">System Health</span>
+                    </button>
+
+                    <button onclick="window.open('/docs', '_blank')" 
+                            class="flex flex-col items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+                        <i class="fas fa-book text-orange-600 text-2xl mb-2"></i>
+                        <span class="text-sm font-medium text-gray-800">API Docs</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Simulate real-time updates
+        function updateStats() {
+            // Simulate changing numbers
+            const pendingCount = Math.floor(Math.random() * 5) + 1;
+            const completedCount = Math.floor(Math.random() * 20) + 10;
+            
+            document.getElementById('pending-count').textContent = pendingCount;
+            document.getElementById('completed-count').textContent = completedCount;
+        }
+
+        // Update stats every 10 seconds
+        setInterval(updateStats, 10000);
+
+        // Fetch real system status
+        async function fetchSystemStatus() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                if (data.trucks) {
+                    document.getElementById('truck-count').textContent = data.trucks;
+                }
+            } catch (error) {
+                console.log('Could not fetch system status');
+            }
+        }
+
+        // Fetch status on load
+        fetchSystemStatus();
+        
+        // Refresh every 30 seconds
+        setInterval(fetchSystemStatus, 30000);
+    </script>
+</body>
+</html>

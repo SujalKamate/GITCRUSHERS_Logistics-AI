@@ -106,6 +106,19 @@ async def demo_landing_index():
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/demo/index.html")
 
+# Add dashboard demo redirect
+@app.get("/dashboard")
+async def dashboard_demo():
+    """Redirect to dashboard demo."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/dashboard/")
+
+@app.get("/dashboard/")
+async def dashboard_demo_index():
+    """Redirect to dashboard demo index."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/dashboard/index.html")
+
 # Add customer app redirect before mounting static files
 @app.get("/customer-app/")
 async def customer_app_index():
@@ -122,6 +135,7 @@ async def driver_app_index():
 
 # Mount static files
 app.mount("/demo", StaticFiles(directory="demo-landing"), name="demo-landing")
+app.mount("/dashboard", StaticFiles(directory="dashboard-demo"), name="dashboard-demo")
 app.mount("/customer-app", StaticFiles(directory="customer-app"), name="customer-app")
 app.mount("/driver-app", StaticFiles(directory="driver-app"), name="driver-app")
 

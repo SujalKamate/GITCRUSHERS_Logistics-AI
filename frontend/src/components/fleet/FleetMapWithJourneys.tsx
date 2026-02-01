@@ -54,10 +54,17 @@ const FleetMapWithJourneys: React.FC<FleetMapWithJourneysProps> = ({
   const fetchJourneyData = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('Fetching journey data from:', `${API_BASE_URL}/api/requests/journeys/active`);
+      
       const response = await fetch(`${API_BASE_URL}/api/requests/journeys/active`);
+      console.log('Journey API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Journey data received:', data);
         generateJourneyDataFromAPI(data.journeys);
+      } else {
+        console.error('Journey API error:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Failed to fetch journey data:', error);
@@ -68,10 +75,14 @@ const FleetMapWithJourneys: React.FC<FleetMapWithJourneysProps> = ({
 
   // Generate journey segments and markers from API data
   const generateJourneyDataFromAPI = useCallback((journeys: any[]) => {
+    console.log('Processing journeys:', journeys.length);
+    
     const segments: JourneySegment[] = [];
     const markers: DeliveryMarker[] = [];
 
     journeys.forEach(journey => {
+      console.log('Processing journey:', journey.request_id, 'for truck:', journey.truck_id);
+      
       // Create journey segments from API data
       journey.segments.forEach((segment: any, index: number) => {
         segments.push({
@@ -110,6 +121,7 @@ const FleetMapWithJourneys: React.FC<FleetMapWithJourneysProps> = ({
       });
     });
 
+    console.log('Generated segments:', segments.length, 'markers:', markers.length);
     setJourneySegments(segments);
     setDeliveryMarkers(markers);
   }, []);

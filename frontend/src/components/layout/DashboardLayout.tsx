@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { DashboardLayoutProps } from '@/types';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import ConnectionTest from '../ui/ConnectionTest';
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children,
@@ -48,6 +49,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Footer */}
       {footer}
+      
+      {/* Connection Test (Development) */}
+      {process.env.NODE_ENV === 'development' && <ConnectionTest />}
     </div>
   );
 };

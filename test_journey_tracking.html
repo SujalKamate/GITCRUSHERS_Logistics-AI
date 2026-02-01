@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journey Tracking Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .json-output {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Journey Tracking Test</h1>
+        <p>This page tests the journey tracking API endpoints and displays the data.</p>
+
+        <div class="section">
+            <h3>1. All Requests</h3>
+            <button class="btn" onclick="fetchAllRequests()">Fetch All Requests</button>
+            <div id="allRequestsStatus" class="status" style="display: none;"></div>
+            <div id="allRequestsOutput" class="json-output"></div>
+        </div>
+
+        <div class="section">
+            <h3>2. Active Journeys</h3>
+            <button class="btn" onclick="fetchActiveJourneys()">Fetch Active Journeys</button>
+            <div id="journeysStatus" class="status" style="display: none;"></div>
+            <div id="journeysOutput" class="json-output"></div>
+        </div>
+
+        <div class="section">
+            <h3>3. TRK-008 Deliveries</h3>
+            <button class="btn" onclick="fetchTruckDeliveries()">Fetch TRK-008 Deliveries</button>
+            <div id="truckStatus" class="status" style="display: none;"></div>
+            <div id="truckOutput" class="json-output"></div>
+        </div>
+
+        <div class="section">
+            <h3>4. Fleet Status</h3>
+            <button class="btn" onclick="fetchFleetStatus()">Fetch Fleet Status</button>
+            <div id="fleetStatus" class="status" style="display: none;"></div>
+            <div id="fleetOutput" class="json-output"></div>
+        </div>
+
+        <div class="section">
+            <h3>5. Auto Refresh</h3>
+            <button class="btn" onclick="toggleAutoRefresh()" id="autoRefreshBtn">Start Auto Refresh (30s)</button>
+            <span id="autoRefreshStatus"></span>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let autoRefreshInterval = null;
+
+        async function fetchData(url, outputId, statusId) {
+            const statusEl = document.getElementById(statusId);
+            const outputEl = document.getElementById(outputId);
+            
+            try {
+                statusEl.style.display = 'block';
+                statusEl.className = 'status';
+                statusEl.textContent = 'Loading...';
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusEl.className = 'status success';
+                    statusEl.textContent = `✓ Success (${response.status})`;
+                    outputEl.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusEl.className = 'status error';
+                    statusEl.textContent = `✗ Error (${response.status})`;
+                    outputEl.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                statusEl.className = 'status error';
+                statusEl.textContent = `✗ Network Error: ${error.message}`;
+                outputEl.textContent = error.toString();
+            }
+        }
+
+        function fetchAllRequests() {
+            fetchData(`${API_BASE}/api/requests/`, 'allRequestsOutput', 'allRequestsStatus');
+        }
+
+        function fetchActiveJourneys() {
+            fetchData(`${API_BASE}/api/requests/journeys/active`, 'journeysOutput', 'journeysStatus');
+        }
+
+        function fetchTruckDeliveries() {
+            fetchData(`${API_BASE}/api/requests/?assigned_truck=TRK-008`, 'truckOutput', 'truckStatus');
+        }
+
+        function fetchFleetStatus() {
+            fetchData(`${API_BASE}/api/fleet/status`, 'fleetOutput', 'fleetStatus');
+        }
+
+        function toggleAutoRefresh() {
+            const btn = document.getElementById('autoRefreshBtn');
+            const status = document.getElementById('autoRefreshStatus');
+            
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                btn.textContent = 'Start Auto Refresh (30s)';
+                status.textContent = '';
+            } else {
+                autoRefreshInterval = setInterval(() => {
+                    fetchActiveJourneys();
+                    fetchTruckDeliveries();
+                }, 30000);
+                btn.textContent = 'Stop Auto Refresh';
+                status.textContent = 'Auto refreshing every 30 seconds...';
+            }
+        }
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchAllRequests();
+            fetchActiveJourneys();
+            fetchTruckDeliveries();
+        });
+    </script>
+</body>
+</html>

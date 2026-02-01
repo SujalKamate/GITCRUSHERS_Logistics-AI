@@ -313,6 +313,8 @@ const FleetMapFixed: React.FC<MapProps & {
   useEffect(() => {
     if (!mapRef.current || !showJourneys) return;
 
+    console.log('Updating journey segments:', journeySegments.length);
+
     // Clear existing journey segments
     journeyRef.current.forEach(segment => {
       mapRef.current?.removeLayer(segment);
@@ -321,6 +323,8 @@ const FleetMapFixed: React.FC<MapProps & {
 
     // Add new journey segments
     journeySegments.forEach(segment => {
+      console.log('Adding journey segment:', segment.id, segment.type, segment.coordinates.length, 'points');
+      
       const polyline = L.polyline(segment.coordinates, {
         color: segment.color,
         weight: 4,
@@ -358,6 +362,8 @@ const FleetMapFixed: React.FC<MapProps & {
   useEffect(() => {
     if (!mapRef.current) return;
 
+    console.log('Updating delivery markers:', deliveryMarkers.length);
+
     // Clear existing delivery markers
     deliveryMarkersRef.current.forEach(marker => {
       mapRef.current?.removeLayer(marker);
@@ -366,6 +372,8 @@ const FleetMapFixed: React.FC<MapProps & {
 
     // Add new delivery markers
     deliveryMarkers.forEach(marker => {
+      console.log('Adding delivery marker:', marker.id, marker.type, marker.position);
+      
       const leafletMarker = L.marker(marker.position, {
         icon: createDeliveryIcon(marker.type, marker.status)
       });

@@ -106,7 +106,7 @@ async def create_request(
         
         # Notify WebSocket clients
         background_tasks.add_task(
-            ws_manager.broadcast_message,
+            ws_manager.broadcast,
             {
                 "type": "new_request",
                 "request_id": request.id,
@@ -221,7 +221,7 @@ async def cancel_request(
     
     # Notify WebSocket clients
     background_tasks.add_task(
-        ws_manager.broadcast_message,
+        ws_manager.broadcast,
         {
             "type": "request_cancelled",
             "request_id": request_id,

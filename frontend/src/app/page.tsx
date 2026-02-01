@@ -177,14 +177,14 @@ export default function HomePage() {
         {/* Coming Soon Features */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Card>
-            <Card.Header title="Delivery Requests" />
+            <Card.Header title="Customer Requests" />
             <Card.Content>
               <p className="text-gray-600 mb-4">
-                AI-powered request processing with automatic truck allocation and cost estimation.
+                Mobile-first interface for customers to request deliveries. AI processes and allocates trucks automatically.
               </p>
               <div className="bg-gray-100 rounded-lg h-32 flex items-center justify-center">
                 <a href="/requests" className="text-primary-600 hover:underline">
-                  Submit Request →
+                  View Pending Requests →
                 </a>
               </div>
             </Card.Content>

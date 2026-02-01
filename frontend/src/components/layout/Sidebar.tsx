@@ -32,7 +32,7 @@ const navigationItems: SidebarItem[] = [
   },
   {
     id: 'requests',
-    label: 'Delivery Requests',
+    label: 'Pending Requests',
     href: '/requests',
     icon: FileText,
   },

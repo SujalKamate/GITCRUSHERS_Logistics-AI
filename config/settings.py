@@ -58,14 +58,24 @@ class Settings(BaseSettings):
     # API Settings
     API_HOST: str = Field(default="0.0.0.0")
     API_PORT: int = Field(default=8000)
-    CORS_ORIGINS: str = Field(default="http://localhost:3000,http://localhost:3002")
+    CORS_ORIGINS: str = Field(default="*")
 
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS_ORIGINS string into a list."""
-        if self.CORS_ORIGINS == "*":
+        if not self.CORS_ORIGINS or self.CORS_ORIGINS == "*":
             return ["*"]
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        # Handle both comma-separated strings and JSON-like formats
+        origins_str = str(self.CORS_ORIGINS).strip()
+        if origins_str.startswith('[') and origins_str.endswith(']'):
+            # Handle JSON-like format: ["url1", "url2"]
+            import json
+            try:
+                return json.loads(origins_str)
+            except json.JSONDecodeError:
+                pass
+        # Handle comma-separated format
+        return [origin.strip().strip('"\'') for origin in origins_str.split(",") if origin.strip()]
 
     # Logging
     LOG_LEVEL: str = Field(default="INFO")

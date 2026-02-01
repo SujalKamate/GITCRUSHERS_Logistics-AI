@@ -93,6 +93,21 @@ app.include_router(control_loop_router)
 app.include_router(decisions_router)
 app.include_router(requests_router)
 
+# Add dashboard redirect
+@app.get("/dashboard")
+async def dashboard_redirect():
+    """Redirect to dashboard index."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/dashboard/")
+
+@app.get("/dashboard/")
+async def dashboard_index():
+    """Serve dashboard - redirect to frontend if available."""
+    from fastapi.responses import RedirectResponse
+    # In production, this should redirect to the deployed frontend
+    # For now, redirect to the demo page
+    return RedirectResponse(url="/demo/")
+
 # Add demo landing page redirect
 @app.get("/demo")
 async def demo_landing():
@@ -105,19 +120,6 @@ async def demo_landing_index():
     """Redirect to demo landing page index."""
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/demo/index.html")
-
-# Add dashboard demo redirect
-@app.get("/dashboard")
-async def dashboard_demo():
-    """Redirect to dashboard demo."""
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/dashboard/")
-
-@app.get("/dashboard/")
-async def dashboard_demo_index():
-    """Redirect to dashboard demo index."""
-    from fastapi.responses import RedirectResponse
-    return RedirectResponse(url="/dashboard/index.html")
 
 # Add customer app redirect before mounting static files
 @app.get("/customer-app/")
@@ -135,7 +137,6 @@ async def driver_app_index():
 
 # Mount static files
 app.mount("/demo", StaticFiles(directory="demo-landing"), name="demo-landing")
-app.mount("/dashboard", StaticFiles(directory="dashboard-demo"), name="dashboard-demo")
 app.mount("/customer-app", StaticFiles(directory="customer-app"), name="customer-app")
 app.mount("/driver-app", StaticFiles(directory="driver-app"), name="driver-app")
 

@@ -49,7 +49,7 @@ class RequestProcessor:
             request_data: Dictionary containing request details
             
         Returns:
-            DeliveryRequest: The created and processed request
+            DeliveryRequest: The created request (stays in PENDING status)
         """
         # Create request with unique ID
         request_id = f"REQ-{uuid.uuid4().hex[:8].upper()}"
@@ -66,8 +66,8 @@ class RequestProcessor:
                    request_id=request_id, 
                    customer=request.customer_name)
         
-        # Process asynchronously
-        asyncio.create_task(self._process_request(request))
+        # DO NOT process automatically - let dashboard trigger processing
+        # This ensures requests stay visible in "pending" status
         
         return request
     
@@ -91,12 +91,18 @@ class RequestProcessor:
             # Step 5: Calculate estimates
             await self._calculate_estimates(request)
             
-            request.status = RequestStatus.ASSIGNED
-            request.processed_at = datetime.utcnow()
-            
-            logger.info("Request processing completed", 
-                       request_id=request.id,
-                       assigned_truck=request.assigned_truck_id)
+            # Validate that truck allocation was successful
+            if request.assigned_truck_id:
+                request.status = RequestStatus.ASSIGNED
+                request.processed_at = datetime.utcnow()
+                
+                logger.info("Request processing completed", 
+                           request_id=request.id,
+                           assigned_truck=request.assigned_truck_id)
+            else:
+                request.status = RequestStatus.FAILED
+                logger.error("Request processing failed - no truck allocated", 
+                            request_id=request.id)
             
         except Exception as e:
             logger.error("Request processing failed", 
@@ -106,6 +112,9 @@ class RequestProcessor:
     
     async def _geocode_addresses(self, request: DeliveryRequest) -> None:
         """Convert addresses to coordinates."""
+        pickup_geocoded = False
+        delivery_geocoded = False
+        
         try:
             # Geocode pickup address
             if not request.pickup_location:
@@ -118,6 +127,7 @@ class RequestProcessor:
                         longitude=pickup_loc.longitude,
                         address=request.pickup_address
                     )
+                    pickup_geocoded = True
             
             # Geocode delivery address
             if not request.delivery_location:
@@ -130,23 +140,69 @@ class RequestProcessor:
                         longitude=delivery_loc.longitude,
                         address=request.delivery_address
                     )
-            
-            logger.info("Addresses geocoded", request_id=request.id)
+                    delivery_geocoded = True
             
         except (GeocoderTimedOut, GeocoderServiceError) as e:
             logger.warning("Geocoding failed, using fallback", 
                           request_id=request.id, error=str(e))
-            # Use NYC coordinates as fallback
-            if not request.pickup_location:
-                request.pickup_location = Location(
-                    latitude=40.7128, longitude=-74.0060,
-                    address=request.pickup_address
-                )
-            if not request.delivery_location:
-                request.delivery_location = Location(
-                    latitude=40.7589, longitude=-73.9851,
-                    address=request.delivery_address
-                )
+        except Exception as e:
+            logger.warning("Geocoding error, using fallback", 
+                          request_id=request.id, error=str(e))
+        
+        # Check if geocoded locations are outside service area (NYC region)
+        # NYC region: roughly 40.4-41.0 latitude, -74.5 to -73.5 longitude
+        def is_in_nyc_region(location: Location) -> bool:
+            return (40.4 <= location.latitude <= 41.0 and 
+                    -74.5 <= location.longitude <= -73.5)
+        
+        # If either location is outside NYC region, use NYC fallback for both
+        if ((request.pickup_location and not is_in_nyc_region(request.pickup_location)) or
+            (request.delivery_location and not is_in_nyc_region(request.delivery_location))):
+            
+            logger.info("Geocoded locations outside service area, using NYC fallback", 
+                       request_id=request.id)
+            
+            request.pickup_location = Location(
+                latitude=40.7128, longitude=-74.0060,
+                address=request.pickup_address
+            )
+            request.delivery_location = Location(
+                latitude=40.7589, longitude=-73.9851,
+                address=request.delivery_address
+            )
+        
+        # Smart fallback logic for failed geocoding
+        elif not request.pickup_location and not request.delivery_location:
+            # Both failed - use NYC coordinates (default service area)
+            request.pickup_location = Location(
+                latitude=40.7128, longitude=-74.0060,
+                address=request.pickup_address
+            )
+            request.delivery_location = Location(
+                latitude=40.7589, longitude=-73.9851,
+                address=request.delivery_address
+            )
+            logger.info("Using NYC fallback for both locations", request_id=request.id)
+            
+        elif not request.pickup_location and request.delivery_location:
+            # Pickup failed, delivery succeeded - use nearby pickup location
+            request.pickup_location = Location(
+                latitude=request.delivery_location.latitude + 0.01,  # ~1km offset
+                longitude=request.delivery_location.longitude + 0.01,
+                address=request.pickup_address
+            )
+            logger.info("Using nearby fallback for pickup location", request_id=request.id)
+            
+        elif request.pickup_location and not request.delivery_location:
+            # Delivery failed, pickup succeeded - use nearby delivery location
+            request.delivery_location = Location(
+                latitude=request.pickup_location.latitude + 0.01,  # ~1km offset
+                longitude=request.pickup_location.longitude + 0.01,
+                address=request.delivery_address
+            )
+            logger.info("Using nearby fallback for delivery location", request_id=request.id)
+        
+        logger.info("Addresses geocoded", request_id=request.id)
     
     async def _analyze_request_with_ai(self, request: DeliveryRequest) -> None:
         """Use AI to analyze the request and provide insights."""
@@ -258,8 +314,15 @@ class RequestProcessor:
         ]
         
         if not available_trucks:
-            logger.warning("No available trucks found", request_id=request.id)
+            logger.warning("No available trucks found", 
+                          request_id=request.id,
+                          required_capacity=request.weight_kg)
             return
+        
+        logger.info("Found available trucks", 
+                   request_id=request.id,
+                   truck_count=len(available_trucks),
+                   required_capacity=request.weight_kg)
         
         # Create temporary load for allocation algorithm
         temp_load = Load(
@@ -285,9 +348,18 @@ class RequestProcessor:
             # Get AI reasoning for the allocation
             await self._get_allocation_reasoning(request, assignment.truck_id)
             
+            # Send WebSocket notification to the assigned truck
+            await self._notify_truck_assignment(request, assignment.truck_id)
+            
             logger.info("Truck allocated", 
                        request_id=request.id,
-                       truck_id=assignment.truck_id)
+                       truck_id=assignment.truck_id,
+                       cost=assignment.estimated_cost)
+        else:
+            logger.warning("Truck allocation failed - no valid assignments", 
+                          request_id=request.id,
+                          available_trucks=len(available_trucks),
+                          unassigned_loads=solution.unassigned_loads)
     
     async def _get_allocation_reasoning(self, request: DeliveryRequest, truck_id: str) -> None:
         """Get AI explanation for truck allocation decision."""
@@ -322,9 +394,47 @@ class RequestProcessor:
             logger.warning("Failed to get allocation reasoning", error=str(e))
             request.allocation_reasoning = f"Allocated to truck {truck_id} based on optimization algorithm"
     
+    async def _notify_truck_assignment(self, request: DeliveryRequest, truck_id: str) -> None:
+        """Send WebSocket notification to the assigned truck driver."""
+        try:
+            from src.api.websocket import ws_manager
+            
+            # Create notification message for the driver
+            notification = {
+                "type": "new_assignment",
+                "truck_id": truck_id,
+                "request_id": request.id,
+                "customer_name": request.customer_name,
+                "description": request.description,
+                "weight_kg": request.weight_kg,
+                "priority": request.priority,
+                "pickup_address": request.pickup_address,
+                "delivery_address": request.delivery_address,
+                "estimated_cost": request.estimated_cost,
+                "estimated_pickup_time": request.estimated_pickup_time.isoformat() if request.estimated_pickup_time else None,
+                "special_instructions": request.special_instructions,
+                "fragile": request.fragile,
+                "temperature_controlled": request.temperature_controlled,
+                "timestamp": datetime.utcnow().isoformat(),
+                "message": f"New delivery assigned: {request.description} for {request.customer_name}"
+            }
+            
+            # Broadcast to all connected clients (in a real app, you'd filter by truck_id)
+            await ws_manager.broadcast(notification)
+            
+            logger.info("Truck assignment notification sent", 
+                       request_id=request.id,
+                       truck_id=truck_id)
+                       
+        except Exception as e:
+            logger.warning("Failed to send truck assignment notification", 
+                          request_id=request.id,
+                          truck_id=truck_id,
+                          error=str(e))
+    
     async def _create_load_assignment(self, request: DeliveryRequest) -> None:
         """Create actual load and assign to truck."""
-        if not request.assigned_truck_id:
+        if not request.assigned_truck_id or not request.pickup_location or not request.delivery_location:
             return
         
         # Create load ID
@@ -410,6 +520,30 @@ class RequestProcessor:
     def get_requests_by_status(self, status: RequestStatus) -> List[DeliveryRequest]:
         """Get requests by status."""
         return [req for req in self.requests.values() if req.status == status]
+    
+    async def process_request(self, request_id: str) -> bool:
+        """
+        Manually trigger processing of a specific request.
+        
+        Args:
+            request_id: ID of the request to process
+            
+        Returns:
+            bool: True if processing started successfully
+        """
+        request = self.get_request(request_id)
+        if not request:
+            return False
+        
+        if request.status != RequestStatus.PENDING:
+            logger.warning("Request not in pending status", 
+                          request_id=request_id, 
+                          current_status=request.status)
+            return False
+        
+        # Process the request
+        asyncio.create_task(self._process_request(request))
+        return True
 
 
 # Global instance

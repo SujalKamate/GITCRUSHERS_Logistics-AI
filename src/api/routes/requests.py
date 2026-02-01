@@ -124,6 +124,7 @@ async def create_request(
 @router.get("/", response_model=List[RequestResponseDTO])
 async def get_requests(
     status: Optional[RequestStatus] = None,
+    assigned_truck: Optional[str] = None,
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ) -> List[RequestResponseDTO]:
@@ -132,6 +133,7 @@ async def get_requests(
     
     Args:
         status: Filter by request status
+        assigned_truck: Filter by assigned truck ID
         limit: Maximum number of requests to return
         offset: Number of requests to skip
     """
@@ -140,6 +142,10 @@ async def get_requests(
             requests = request_processor.get_requests_by_status(status)
         else:
             requests = request_processor.get_all_requests()
+        
+        # Filter by assigned truck if specified
+        if assigned_truck:
+            requests = [req for req in requests if req.assigned_truck_id == assigned_truck]
         
         # Apply pagination
         paginated_requests = requests[offset:offset + limit]
@@ -197,6 +203,29 @@ async def get_request(request_id: str) -> RequestResponseDTO:
         raise HTTPException(status_code=404, detail="Request not found")
     
     return RequestResponseDTO(**request.model_dump())
+
+
+@router.put("/{request_id}/process")
+async def process_request(
+    request_id: str,
+    background_tasks: BackgroundTasks
+) -> dict:
+    """Manually trigger AI processing of a pending request."""
+    success = await request_processor.process_request(request_id)
+    
+    if not success:
+        raise HTTPException(status_code=400, detail="Request cannot be processed")
+    
+    # Notify WebSocket clients
+    background_tasks.add_task(
+        ws_manager.broadcast,
+        {
+            "type": "request_processing_started",
+            "request_id": request_id
+        }
+    )
+    
+    return {"message": "Request processing started"}
 
 
 @router.put("/{request_id}/cancel")
@@ -273,3 +302,89 @@ async def get_request_tracking(request_id: str) -> dict:
                     tracking_info["progress_percentage"] = round(progress, 1)
     
     return tracking_info
+
+
+@router.get("/journeys/active")
+async def get_active_journeys() -> dict:
+    """Get all active delivery journeys for map visualization."""
+    try:
+        from src.api.services.state_manager import state_manager
+        
+        # Get all assigned requests
+        assigned_requests = request_processor.get_requests_by_status(RequestStatus.ASSIGNED)
+        
+        journeys = []
+        
+        for request in assigned_requests:
+            if not (request.assigned_truck_id and request.pickup_location and request.delivery_location):
+                continue
+                
+            # Find the assigned truck
+            truck = next((t for t in state_manager.trucks if t.id == request.assigned_truck_id), None)
+            if not truck or not truck.current_location:
+                continue
+            
+            # Create journey data
+            journey = {
+                "request_id": request.id,
+                "truck_id": request.assigned_truck_id,
+                "customer_name": request.customer_name,
+                "description": request.description,
+                "status": request.status,
+                "truck_position": {
+                    "latitude": truck.current_location.latitude,
+                    "longitude": truck.current_location.longitude
+                },
+                "pickup_location": {
+                    "latitude": request.pickup_location.latitude,
+                    "longitude": request.pickup_location.longitude,
+                    "address": request.pickup_address
+                },
+                "delivery_location": {
+                    "latitude": request.delivery_location.latitude,
+                    "longitude": request.delivery_location.longitude,
+                    "address": request.delivery_address
+                },
+                "estimated_cost": request.estimated_cost,
+                "estimated_pickup_time": request.estimated_pickup_time,
+                "estimated_delivery_time": request.estimated_delivery_time,
+                "segments": [
+                    {
+                        "type": "to_pickup",
+                        "from": {
+                            "latitude": truck.current_location.latitude,
+                            "longitude": truck.current_location.longitude
+                        },
+                        "to": {
+                            "latitude": request.pickup_location.latitude,
+                            "longitude": request.pickup_location.longitude
+                        },
+                        "status": "active",
+                        "color": "#3b82f6"
+                    },
+                    {
+                        "type": "to_delivery", 
+                        "from": {
+                            "latitude": request.pickup_location.latitude,
+                            "longitude": request.pickup_location.longitude
+                        },
+                        "to": {
+                            "latitude": request.delivery_location.latitude,
+                            "longitude": request.delivery_location.longitude
+                        },
+                        "status": "pending",
+                        "color": "#8b5cf6"
+                    }
+                ]
+            }
+            
+            journeys.append(journey)
+        
+        return {
+            "journeys": journeys,
+            "total_active_journeys": len(journeys),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get active journeys: {str(e)}")

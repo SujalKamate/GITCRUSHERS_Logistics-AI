@@ -33,12 +33,41 @@ export function RequestProcessingPanel({ selectedRequestId, onRequestProcessed }
     
     setProcessing(true);
     try {
-      // Trigger AI processing (in real implementation, this would call an API)
-      // For now, we'll just simulate the processing
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      onRequestProcessed();
+      // Call the API to trigger AI processing
+      const response = await fetch(`http://localhost:8000/api/requests/${selectedRequestId}/process`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to process request');
+      }
+
+      // Start polling for updates
+      const pollForUpdates = async () => {
+        let attempts = 0;
+        const maxAttempts = 30; // 30 seconds max
+        
+        while (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          await refetch();
+          
+          if (request?.status === 'assigned') {
+            onRequestProcessed();
+            break;
+          }
+          
+          attempts++;
+        }
+      };
+      
+      await pollForUpdates();
     } catch (error) {
       console.error('Processing failed:', error);
+      alert(`Processing failed: ${error.message}`);
     } finally {
       setProcessing(false);
     }

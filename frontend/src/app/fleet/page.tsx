@@ -16,7 +16,7 @@ import { WS_BASE_URL } from '@/lib/constants';
 
 // Dynamically import FleetMap to avoid SSR issues with Leaflet
 const FleetMap = dynamic(
-  () => import('@/components/fleet/FleetMap'),
+  () => import('@/components/fleet/FleetMapWithJourneys'),
   {
     ssr: false,
     loading: () => (

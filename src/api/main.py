@@ -5,6 +5,7 @@ FastAPI application entry point for the Logistics AI Dashboard.
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from src.api.websocket import ws_manager
 from src.api.routes import fleet_router, control_loop_router, decisions_router, requests_router
@@ -64,6 +65,8 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
+        "http://localhost:3002",
+        "http://127.0.0.1:3002",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -75,6 +78,24 @@ app.include_router(fleet_router)
 app.include_router(control_loop_router)
 app.include_router(decisions_router)
 app.include_router(requests_router)
+
+# Add customer app redirect before mounting static files
+@app.get("/customer-app/")
+async def customer_app_index():
+    """Redirect to customer app index."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/customer-app/index.html")
+
+
+@app.get("/driver-app/")
+async def driver_app_index():
+    """Redirect to driver app index."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/driver-app/index.html")
+
+# Mount static files
+app.mount("/customer-app", StaticFiles(directory="customer-app"), name="customer-app")
+app.mount("/driver-app", StaticFiles(directory="driver-app"), name="driver-app")
 
 
 # ============================================================================
@@ -101,6 +122,22 @@ async def health_check():
         "control_loop_running": state_manager.control_loop_running,
         "websocket_connections": ws_manager.connection_count
     }
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    """Favicon endpoint."""
+    from fastapi.responses import FileResponse
+    import os
+    
+    # Try to serve favicon from customer-app directory
+    favicon_path = "customer-app/favicon.ico"
+    if os.path.exists(favicon_path):
+        return FileResponse(favicon_path)
+    
+    # Return 204 No Content if favicon doesn't exist
+    from fastapi.responses import Response
+    return Response(status_code=204)
 
 
 # ============================================================================

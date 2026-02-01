@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruckDriver - Delivery Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚛</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        
+        .driver-info {
+            text-align: right;
+            font-size: 0.875rem;
+        }
+        
+        .glass-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-item {
+            text-align: center;
+        }
+        
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .status-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .notification {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .notification.new {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+        
+        .delivery-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .delivery-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .delivery-id {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .delivery-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-assigned { background: rgba(59, 130, 246, 0.3); }
+        .status-picked-up { background: rgba(245, 158, 11, 0.3); }
+        .status-in-transit { background: rgba(139, 92, 246, 0.3); }
+        .status-delivered { background: rgba(34, 197, 94, 0.3); }
+        
+        .delivery-details {
+            margin: 1rem 0;
+        }
+        
+        .detail-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+        
+        .detail-icon {
+            width: 1.5rem;
+            margin-right: 0.75rem;
+            text-align: center;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: rgba(34, 197, 94, 0.8);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(34, 197, 94, 1);
+        }
+        
+        .btn-secondary {
+            background: rgba(245, 158, 11, 0.8);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(245, 158, 11, 1);
+        }
+        
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+        }
+        
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-sm {
+            font-size: 0.875rem;
+        }
+        
+        .text-xs {
+            font-size: 0.75rem;
+        }
+        
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mt-4 { margin-top: 1rem; }
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .connected {
+            background: rgba(34, 197, 94, 0.8);
+        }
+        
+        .disconnected {
+            background: rgba(239, 68, 68, 0.8);
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Status -->
+    <div id="connectionStatus" class="connection-status disconnected">
+        <i class="fas fa-wifi"></i> Connecting...
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="logo">
+                    <i class="fas fa-truck"></i>
+                    <span>TruckDriver</span>
+                </div>
+                <div class="driver-info">
+                    <div id="driverName">John Smith</div>
+                    <div id="truckId" class="text-xs">TRK-001</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span id="activeDeliveries" class="status-value">0</span>
+                <span class="status-label">Active</span>
+            </div>
+            <div class="status-item">
+                <span id="completedToday" class="status-value">0</span>
+                <span class="status-label">Completed</span>
+            </div>
+            <div class="status-item">
+                <span id="totalDistance" class="status-value">0</span>
+                <span class="status-label">km Today</span>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div id="notifications"></div>
+
+        <!-- Current Deliveries -->
+        <div class="glass-card">
+            <h2 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-clipboard-list"></i>
+                Current Deliveries
+            </h2>
+            <div id="deliveriesList">
+                <div class="text-center" style="padding: 2rem; opacity: 0.7;">
+                    <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>No active deliveries</p>
+                    <p class="text-sm">You'll be notified when new deliveries are assigned</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="glass-card">
+            <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
+            <button class="btn btn-ghost" onclick="refreshDeliveries()">
+                <i class="fas fa-sync-alt"></i>
+                Refresh Deliveries
+            </button>
+            <button class="btn btn-ghost" onclick="updateLocation()">
+                <i class="fas fa-map-marker-alt"></i>
+                Update Location
+            </button>
+            <button class="btn btn-ghost" onclick="reportIssue()">
+                <i class="fas fa-exclamation-triangle"></i>
+                Report Issue
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let ws = null;
+        let currentTruckId = 'TRK-001'; // This would come from login
+        let deliveries = [];
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Set truck info (in real app, this would come from authentication)
+            document.getElementById('truckId').textContent = currentTruckId;
+            
+            // Connect to WebSocket for real-time updates
+            connectWebSocket();
+            
+            // Load initial deliveries
+            loadDeliveries();
+            
+            // Update location periodically
+            setInterval(updateLocation, 30000); // Every 30 seconds
+        }
+
+        function connectWebSocket() {
+            const wsUrl = 'ws://localhost:8000/ws';
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                updateConnectionStatus(true);
+                
+                // Subscribe to truck-specific updates
+                ws.send(JSON.stringify({
+                    type: 'subscribe',
+                    events: ['truck_assignment', 'delivery_update'],
+                    truck_id: currentTruckId
+                }));
+            };
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+
+            ws.onclose = function() {
+                console.log('WebSocket disconnected');
+                updateConnectionStatus(false);
+                
+                // Reconnect after 3 seconds
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus(false);
+            };
+        }
+
+        function handleWebSocketMessage(data) {
+            switch(data.type) {
+                case 'new_assignment':
+                    if (data.truck_id === currentTruckId) {
+                        showNotification('New Delivery Assigned!', `Request ${data.request_id} has been assigned to your truck.`, 'new');
+                        loadDeliveries();
+                    }
+                    break;
+                    
+                case 'delivery_update':
+                    if (data.truck_id === currentTruckId) {
+                        updateDeliveryStatus(data.request_id, data.status);
+                    }
+                    break;
+                    
+                case 'pong':
+                    // Heartbeat response
+                    break;
+            }
+        }
+
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            if (connected) {
+                status.className = 'connection-status connected';
+                status.innerHTML = '<i class="fas fa-wifi"></i> Connected';
+            } else {
+                status.className = 'connection-status disconnected';
+                status.innerHTML = '<i class="fas fa-wifi"></i> Disconnected';
+            }
+        }
+
+        async function loadDeliveries() {
+            try {
+                // Get all requests assigned to this truck
+                const response = await fetch(`${API_BASE}/api/requests/?assigned_truck=${currentTruckId}`);
+                if (response.ok) {
+                    const requests = await response.json();
+                    deliveries = requests.filter(r => r.status !== 'delivered');
+                    renderDeliveries();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Failed to load deliveries:', error);
+            }
+        }
+
+        function renderDeliveries() {
+            const container = document.getElementById('deliveriesList');
+            
+            if (deliveries.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center" style="padding: 2rem; opacity: 0.7;">
+                        <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>No active deliveries</p>
+                        <p class="text-sm">You'll be notified when new deliveries are assigned</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = deliveries.map(delivery => `
+                <div class="delivery-card">
+                    <div class="delivery-header">
+                        <div class="delivery-id">${delivery.id}</div>
+                        <div class="delivery-status status-${delivery.status.replace('_', '-')}">${formatStatus(delivery.status)}</div>
+                    </div>
+                    
+                    <div class="delivery-details">
+                        <div class="detail-row">
+                            <i class="fas fa-user detail-icon"></i>
+                            <span>${delivery.customer_name}</span>
+                        </div>
+                        <div class="detail-row">
+                            <i class="fas fa-box detail-icon"></i>
+                            <span>${delivery.description} (${delivery.weight_kg}kg)</span>
+                        </div>
+                        <div class="detail-row">
+                            <i class="fas fa-map-marker-alt detail-icon"></i>
+                            <span>${delivery.pickup_address}</span>
+                        </div>
+                        <div class="detail-row">
+                            <i class="fas fa-flag-checkered detail-icon"></i>
+                            <span>${delivery.delivery_address}</span>
+                        </div>
+                        ${delivery.estimated_cost ? `
+                        <div class="detail-row">
+                            <i class="fas fa-dollar-sign detail-icon"></i>
+                            <span>$${delivery.estimated_cost.toFixed(2)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="delivery-actions">
+                        ${getActionButtons(delivery)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getActionButtons(delivery) {
+            switch(delivery.status) {
+                case 'assigned':
+                    return `
+                        <button class="btn btn-primary" onclick="updateDeliveryStatus('${delivery.id}', 'picked_up')">
+                            <i class="fas fa-check"></i> Mark as Picked Up
+                        </button>
+                        <button class="btn btn-secondary" onclick="openNavigation('${delivery.pickup_address}')">
+                            <i class="fas fa-route"></i> Navigate to Pickup
+                        </button>
+                    `;
+                case 'picked_up':
+                    return `
+                        <button class="btn btn-primary" onclick="updateDeliveryStatus('${delivery.id}', 'in_transit')">
+                            <i class="fas fa-truck"></i> Start Delivery
+                        </button>
+                        <button class="btn btn-secondary" onclick="openNavigation('${delivery.delivery_address}')">
+                            <i class="fas fa-route"></i> Navigate to Delivery
+                        </button>
+                    `;
+                case 'in_transit':
+                    return `
+                        <button class="btn btn-primary" onclick="updateDeliveryStatus('${delivery.id}', 'delivered')">
+                            <i class="fas fa-check-circle"></i> Mark as Delivered
+                        </button>
+                        <button class="btn btn-secondary" onclick="openNavigation('${delivery.delivery_address}')">
+                            <i class="fas fa-route"></i> Navigate to Delivery
+                        </button>
+                    `;
+                default:
+                    return '';
+            }
+        }
+
+        function formatStatus(status) {
+            const statusMap = {
+                'assigned': 'Assigned',
+                'picked_up': 'Picked Up',
+                'in_transit': 'In Transit',
+                'delivered': 'Delivered'
+            };
+            return statusMap[status] || status;
+        }
+
+        async function updateDeliveryStatus(deliveryId, newStatus) {
+            try {
+                // In a real app, this would call an API to update delivery status
+                console.log(`Updating ${deliveryId} to ${newStatus}`);
+                
+                // Update local state
+                const delivery = deliveries.find(d => d.id === deliveryId);
+                if (delivery) {
+                    delivery.status = newStatus;
+                    renderDeliveries();
+                    updateStats();
+                    
+                    showNotification('Status Updated', `Delivery ${deliveryId} marked as ${formatStatus(newStatus)}`, 'success');
+                }
+            } catch (error) {
+                console.error('Failed to update delivery status:', error);
+                showNotification('Update Failed', 'Could not update delivery status', 'error');
+            }
+        }
+
+        function updateStats() {
+            const active = deliveries.filter(d => d.status !== 'delivered').length;
+            const completed = deliveries.filter(d => d.status === 'delivered').length;
+            
+            document.getElementById('activeDeliveries').textContent = active;
+            document.getElementById('completedToday').textContent = completed;
+            document.getElementById('totalDistance').textContent = Math.floor(Math.random() * 200); // Mock data
+        }
+
+        function showNotification(title, message, type = 'info') {
+            const container = document.getElementById('notifications');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            notification.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div style="font-weight: bold; margin-bottom: 0.25rem;">${title}</div>
+                        <div style="font-size: 0.875rem;">${message}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        function refreshDeliveries() {
+            showNotification('Refreshing', 'Loading latest deliveries...', 'info');
+            loadDeliveries();
+        }
+
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    console.log('Location updated:', position.coords.latitude, position.coords.longitude);
+                    showNotification('Location Updated', 'Your location has been updated', 'success');
+                }, function(error) {
+                    console.error('Location error:', error);
+                    showNotification('Location Error', 'Could not update location', 'error');
+                });
+            } else {
+                showNotification('Location Error', 'Geolocation not supported', 'error');
+            }
+        }
+
+        function openNavigation(address) {
+            // Open navigation app (Google Maps, Apple Maps, etc.)
+            const encodedAddress = encodeURIComponent(address);
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+            window.open(url, '_blank');
+        }
+
+        function reportIssue() {
+            const issue = prompt('Describe the issue:');
+            if (issue) {
+                console.log('Issue reported:', issue);
+                showNotification('Issue Reported', 'Your issue has been reported to dispatch', 'success');
+            }
+        }
+
+        // Send heartbeat every 30 seconds
+        setInterval(() => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

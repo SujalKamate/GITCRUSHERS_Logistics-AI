@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend API Test</title>
+</head>
+<body>
+    <h1>Frontend API Connection Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Test API connection
+                const response = await fetch('http://localhost:8000/api/requests/summary');
+                const data = await response.json();
+                
+                results.innerHTML = `
+                    <h2>✅ API Connection Successful</h2>
+                    <p>Total Requests: ${data.total_requests}</p>
+                    <p>Pending Requests: ${data.pending_requests}</p>
+                    <p>Assigned Requests: ${data.assigned_requests}</p>
+                    <p>Total Revenue: $${data.total_estimated_revenue.toFixed(2)}</p>
+                `;
+            } catch (error) {
+                results.innerHTML = `
+                    <h2>❌ API Connection Failed</h2>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // Test on page load
+        testAPI();
+    </script>
+</body>
+</html>

@@ -7,7 +7,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.websocket import ws_manager
-from src.api.routes import fleet_router, control_loop_router, decisions_router
+from src.api.routes import fleet_router, control_loop_router, decisions_router, requests_router
 from src.api.services.simulation import simulation_service
 from src.api.services.state_manager import state_manager
 
@@ -74,6 +74,7 @@ app.add_middleware(
 app.include_router(fleet_router)
 app.include_router(control_loop_router)
 app.include_router(decisions_router)
+app.include_router(requests_router)
 
 
 # ============================================================================

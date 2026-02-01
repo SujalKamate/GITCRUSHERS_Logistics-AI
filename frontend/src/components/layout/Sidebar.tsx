@@ -18,6 +18,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  FileText,
   type LucideIcon
 } from 'lucide-react';
 import { SidebarProps, SidebarItem } from '@/types';
@@ -28,6 +29,12 @@ const navigationItems: SidebarItem[] = [
     label: 'Dashboard',
     href: '/',
     icon: LayoutDashboard,
+  },
+  {
+    id: 'requests',
+    label: 'Delivery Requests',
+    href: '/requests',
+    icon: FileText,
   },
   {
     id: 'fleet',

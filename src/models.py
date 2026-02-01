@@ -44,6 +44,17 @@ class LoadPriority(str, Enum):
     CRITICAL = "critical"
 
 
+class RequestStatus(str, Enum):
+    """Status of a delivery request."""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    ASSIGNED = "assigned"
+    IN_TRANSIT = "in_transit"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
+
+
 class ActionType(str, Enum):
     """Types of actions the system can execute."""
     REROUTE = "reroute"
@@ -173,6 +184,51 @@ class Load(BaseModel):
     # Status
     picked_up_at: Optional[datetime] = None
     delivered_at: Optional[datetime] = None
+
+
+class DeliveryRequest(BaseModel):
+    """A delivery request submitted by a user."""
+    id: str
+    customer_name: str
+    customer_phone: Optional[str] = None
+    customer_email: Optional[str] = None
+    
+    # Load details
+    description: str
+    weight_kg: float = Field(gt=0, description="Weight in kilograms")
+    volume_m3: Optional[float] = Field(None, gt=0, description="Volume in cubic meters")
+    priority: LoadPriority = LoadPriority.NORMAL
+    
+    # Locations
+    pickup_address: str
+    pickup_location: Optional[Location] = None
+    delivery_address: str
+    delivery_location: Optional[Location] = None
+    
+    # Timing preferences
+    preferred_pickup_time: Optional[datetime] = None
+    delivery_deadline: Optional[datetime] = None
+    
+    # Special requirements
+    special_instructions: Optional[str] = None
+    fragile: bool = False
+    temperature_controlled: bool = False
+    
+    # Status and processing
+    status: RequestStatus = RequestStatus.PENDING
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    processed_at: Optional[datetime] = None
+    
+    # AI processing results
+    estimated_cost: Optional[float] = None
+    estimated_pickup_time: Optional[datetime] = None
+    estimated_delivery_time: Optional[datetime] = None
+    assigned_truck_id: Optional[str] = None
+    assigned_load_id: Optional[str] = None
+    
+    # AI analysis
+    ai_analysis: Optional[dict] = None
+    allocation_reasoning: Optional[str] = None
 
 
 class TrafficCondition(BaseModel):
